@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 2019/11/2 16:23
-# @Author  : 邵明岩
+# @Time    : 2019/11/15 21:23
+# @Author  : ghoskno
 # @File    : brybt.py
 # @Software: PyCharm
 
@@ -10,16 +10,12 @@ import os
 import re
 import pickle
 from io import BytesIO
-from urllib.request import urlopen
 import platform
 from contextlib import ContextDecorator
 from PIL import Image
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+import requests
+from requests.cookies import RequestsCookieJar
+from bs4 import BeautifulSoup
 
 from decaptcha import DeCaptcha
 
@@ -54,35 +50,17 @@ _cat_map = {
     '体育': 'sport',
     '记录': 'documentary',
 }
-_username = '账户'
+_username = '用户名'
 _passwd = '密码'
-_transmission_user_pw = 'user:password'
+_transmission_user_pw = 'user:pass'
 
 # 全局变量
-options = Options()
-chrome_driver = '/root/chromedriver'
 download_path = None
 
 if osName == 'Windows':
-    # options.add_argument('--headless')
-    # options.add_argument('--disable-gpu')
-    options.add_argument('--user-agent="Magic Browser"')
     download_path = os.path.abspath('./torrent')
-    prefs = {'profile.default_content_settings.popups': 0, 'download.default_directory': download_path}
-    options.add_experimental_option('prefs', prefs)
-    chrome_driver = 'D:\\workplace\\python\\crawler\\chromedriver.exe'
 elif osName == 'Linux':
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--user-agent="Magic Browser"')
-    download_path = os.path.abspath('/home/.bt/torrents')
-    prefs = {'download.prompt_for_download': False, 'download.default_directory': download_path}
-    options.add_experimental_option('prefs', prefs)
-    # brower.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-    # params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_path}}
-    # command_result = brower.execute("send_command", params)
-    chrome_driver = '/root/chromedriver'
+    download_path = os.path.abspath('/bt/torrents')
 else:
     raise Exception('not support system! {}'.format(osName))
 
@@ -99,80 +77,33 @@ if os.path.exists('./torrent.pkl'):
 def get_url(url):
     return _BASE_URL + url
 
-
 def login():
     url = get_url('login.php')
-    index_url = get_url('index.php')
-    browser = webdriver.Chrome(options=options, executable_path=chrome_driver)
-    browser.get(url)
-    wait_browser = WebDriverWait(browser, 1)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
 
-    while True:
-        # login byrbt
+    session = requests.session()
+    for i in range(5):
+        login_content = session.get(url)
+        login_soup = BeautifulSoup(login_content.text, 'lxml')
 
-        image = wait_browser.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            '#nav_block > form:nth-child(6) > table > tbody > tr:nth-child(3) > td:nth-child(2) > img'))
-        )
-        image_url = image.get_attribute('src')
-        image_file = Image.open(BytesIO(urlopen(image_url).read()))
-        captcha_text = decaptcha.decode(image_file)
+        img_url = _BASE_URL + login_soup.select('#nav_block > form > table > tr:nth-of-type(3) img')[0].attrs['src']
+        img_file = Image.open(BytesIO(session.get(img_url).content))
 
-        username = wait_browser.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            '#nav_block > form:nth-child(6) > table > tbody > tr:nth-child(1) > td.rowfollow > input[type=text]'))
-        )
-        username.clear()
-        username.send_keys(_username)
-        passwd = wait_browser.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            '#nav_block > form:nth-child(6) > table > tbody > tr:nth-child(2) > td.rowfollow > input[type=password]'))
-        )
-        passwd.clear()
-        passwd.send_keys(_passwd)
-        captcha = wait_browser.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            '#nav_block > form:nth-child(6) > table > tbody > tr:nth-child(4) > td:nth-child(2) > input[type=text]:nth-child(1)'))
-        )
-        captcha.clear()
-        captcha.send_keys(captcha_text)
+        captcha_text = decaptcha.decode(img_file)
 
-        ok_btn = wait_browser.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            '#nav_block > form:nth-child(6) > table > tbody > tr:nth-child(9) > td > input:nth-child(1)'))
-        )
+        login_res = session.post(get_url('takelogin.php'), headers=headers, data=dict(username=_username, password=_passwd, imagestring=captcha_text, imagehash=img_url.split('=')[-1]))
+        if '最近消息' in login_res.text:
+            cookies = {}
+            for k, v in session.cookies.items():
+                cookies[k] = v
 
-        ok_btn.click()
+            with open('ByrbtCookies.pickle', 'wb') as f:
+                pickle.dump(cookies, f)
+            return cookies
 
         time.sleep(1)
-        # if login in successfully, url  jump to byr.bt.cn/index.php
-        try_nums = 5
-        while True:
-            if browser.current_url == index_url:
-                byrbt_cookies = browser.get_cookies()
-                browser.quit()
-                cookies = {}
-                for item in byrbt_cookies:
-                    cookies[item['name']] = item['value']
-                output_path = open('ByrbtCookies.pickle', 'wb')
-                pickle.dump(cookies, output_path)
-                output_path.close()
 
-                del browser
-                kill_chrome()
-
-                return cookies
-            else:
-                try_nums = try_nums - 1
-                time.sleep(1)
-
-            if try_nums <= 0:
-                browser.quit()
-                del browser
-                kill_chrome()
-
-                raise Exception('Cat not get Cookies!')
-
+    raise Exception('Cat not get Cookies!')
 
 def load_cookie():
     if os.path.exists('ByrbtCookies.pickle'):
@@ -185,7 +116,6 @@ def load_cookie():
 
     return byrbt_cookies
 
-
 def _get_tag(tag):
     try:
         if tag == '':
@@ -197,20 +127,17 @@ def _get_tag(tag):
     except KeyError:
         return ''
 
-
 def _get_torrent_info(table):
     assert isinstance(table, list)
     torrent_infos = list()
-    for idx in range(1, len(table)):
+    for item in table:
         torrent_info = dict()
-        item = table[idx]
-        tds = item.find_elements_by_xpath('./td')
-
-        cat = tds[0].find_element_by_xpath('./a/img').get_attribute('title')
-        main_td = tds[1].find_element_by_xpath('./table/tbody/tr/td')
-        href = main_td.find_element_by_xpath('./a').get_attribute('href')
+        tds = item.select('td')
+        cat = tds[0].select('img')[0].attrs['title']
+        main_td = tds[1].select('table > tr > td')[0]
+        href = main_td.select('a')[0].attrs['href']
         seed_id = re.findall(r'id=(\d+)&', href)[0]
-        title = main_td.get_attribute('innerText')
+        title = main_td.text
         title = title.split('\n')
         if len(title) == 2:
             sub_title = title[1]
@@ -219,14 +146,13 @@ def _get_torrent_info(table):
             sub_title = ''
             title = title[0]
 
-        tags = set([
-            font.get_attribute('class') for font in main_td.find_elements_by_xpath('./b/font')
-        ])
+        tags = set([font.attrs['class'][0] for font in main_td.select('b > font') if 'class' in font.attrs.keys()])
         if '' in tags:
             tags.remove('')
 
-        is_seeding = len(main_td.find_elements_by_xpath('./img[@src="pic/seeding.png"]')) > 0
-        is_finished = len(main_td.find_elements_by_xpath('./img[@src="pic/finished.png"]')) > 0
+        is_seeding = len(main_td.select('img[src="pic/seeding.png"]')) > 0
+        is_finished = len(main_td.select('img[src="pic/finished.png"]')) > 0
+
         is_hot = False
         if 'hot' in tags:
             is_hot = True
@@ -240,15 +166,18 @@ def _get_torrent_info(table):
             is_recommended = True
             tags.remove('recommended')
 
-        tag = _get_tag(tds[1].find_element_by_xpath('./table/tbody/tr').get_attribute('class'))
+        if 'class' in tds[1].select('table > tr')[0].attrs.keys():
+            tag = _get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
+        else:
+            tag = ''
 
-        file_size = tds[4].text.split('\n')
+        file_size = tds[6].text.split('\n')
 
-        seeding = int(tds[5].text) if tds[5].text.isdigit() else -1
+        seeding = int(tds[7].text) if tds[7].text.isdigit() else -1
 
-        downloading = int(tds[6].text) if tds[6].text.isdigit() else -1
+        downloading = int(tds[8].text) if tds[8].text.isdigit() else -1
 
-        finished = int(tds[7].text) if tds[7].text.isdigit() else -1
+        finished = int(tds[9].text) if tds[9].text.isdigit() else -1
 
         torrent_info['cat'] = cat
         torrent_info['is_hot'] = is_hot
@@ -268,7 +197,6 @@ def _get_torrent_info(table):
 
     return torrent_infos
 
-
 def get_torrent(torrent_infos, tags):
     free_infos = list()
     for torrent_info in torrent_infos:
@@ -276,7 +204,6 @@ def get_torrent(torrent_infos, tags):
             free_infos.append(torrent_info)
 
     return free_infos
-
 
 def get_ok_torrent(torrent_infos):
     def _get_torrent(infos, id):
@@ -301,48 +228,38 @@ def get_ok_torrent(torrent_infos):
 
     return ok_infos
 
-
 def download_torrent(op_str):
+
+    cookie_jar = RequestsCookieJar()
+    for k, v in byrbt_cookies.items():
+        cookie_jar[k] = v
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+
     id_re = re.findall(r'dl (\d+)', op_str, re.I)
     if len(id_re) == 0:
         print('no such torrent')
         return
-    id_str = id_re[0]
+    torrent_id = id_re[0]
 
-    detail_url = 'details.php?id={}'.format(id_str)
-    detail_url = get_url(detail_url)
+    download_url = 'download.php?id={}'.format(torrent_id)
+    download_url = get_url(download_url)
+    try:
+        torrent = requests.get(download_url, cookies=cookie_jar, headers=headers)
+        torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1])
+        with open(os.path.join(download_path, torrent_file_name), 'wb') as f:
+            f.write(torrent.content)
 
-    browser = webdriver.Chrome(options=options, executable_path=chrome_driver)
-    if osName == 'Linux':
-        browser.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-        params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_path}}
-        command_result = browser.execute("send_command", params)
+    except:
+        print('login failed!')
+        return False
 
-    browser.get(detail_url)
-    for cookie in byrbt_cookies:
-        browser.add_cookie({
-            "domain": ".byr.cn",
-            "name": cookie,
-            "value": byrbt_cookies[cookie],
-            "path": '/',
-            "expires": None
-        })
-    browser.get(detail_url)
-    wait_brower = WebDriverWait(browser, 3)
-    name_element = browser.find_element_by_xpath('//td/a[@class="index"]')
-    file_name = name_element.text
-    download_btn = wait_brower.until(
-        EC.presence_of_element_located((By.CSS_SELECTOR,
-                                        '#outer > table:nth-child(6) > tbody > tr:nth-child(5) > td.rowfollow > a:nth-child(1) > b > font'))
-    )
-    download_btn.click()
     index = 20
     while index > 0:
-        if os.path.exists(os.path.join(download_path, file_name)):
-            browser.quit()
+        if os.path.exists(os.path.join(download_path, torrent_file_name)):
             if osName == 'Linux':
-                torrent_file_path = os.path.join(download_path, file_name)
-                cmd_str = "transmission-remote -n '{}' -a {}".format(_transmission_user_pw,torrent_file_path)
+                torrent_file_path = os.path.join(download_path, torrent_file_name)
+                cmd_str = "transmission-remote -n '{}' -a {}".format(_transmission_user_pw, torrent_file_path)
                 ret_val = os.system(cmd_str)
                 if ret_val != 0:
                     print('script `{}` returns {}'.format(cmd_str, ret_val))
@@ -351,35 +268,18 @@ def download_torrent(op_str):
                     print('下载成功')
             else:
                 print('下载成功')
-            del browser
-            kill_chrome()
             return
         else:
             time.sleep(0.5)
             index = index - 1
-
-    browser.quit()
-    del browser
-    kill_chrome()
     print('下载失败')
-
+    return
 
 def execCmd(cmd):
     r = os.popen(cmd)
     text = r.read()
     r.close()
     return text
-
-
-def kill_all(pids):
-    for pid in pids:
-        os.system('sudo kill -9 {}'.format(pid))
-
-
-def kill_chrome():
-    time.sleep(1)
-    kill_all(execCmd("sudo ps -ef | grep 'chrome' | grep -v grep | awk '{print $2}'").split('\n')[:-1])
-
 
 def op_help():
     return """
@@ -391,7 +291,7 @@ def op_help():
             i.e. dl $id
                 $id - torrent id, acquired by `ls` or `se`
 
-        3. list torrent status - list the torrent files status, merely call `transmission-remote -l` 
+        3. list torrent status - list the torrent files status, merely call `transmission-remote -l`
             i.e. tls
 
         4. remove torrent - remove specific torrent job, merely call `transmission-remote -t $id -r`
@@ -402,10 +302,8 @@ def op_help():
         7. exit
     """
 
-
 def list_torrent():
-    os.system('sudo transmission-remote -n "{}" -l'.format(_transmission_user_pw))
-
+    os.system('transmission-remote -n "{}" -l'.format(_transmission_user_pw))
 
 def get_info(text):
     text = text.split('\n')
@@ -429,7 +327,6 @@ def get_info(text):
 
     return text_s, sum_size
 
-
 def remove_torrent(op_str):
     id_re = re.findall(r'trm (\d+)', op_str, re.I)
     if len(id_re) == 0:
@@ -438,19 +335,19 @@ def remove_torrent(op_str):
     id_str = id_re[0]
     id_str = str(id_str)
 
-    text = execCmd('sudo transmission-remote -n "{}" -l'.format(_transmission_user_pw))
+    text = execCmd('transmission-remote -n "{}" -l'.format(_transmission_user_pw))
     text_s, sum_size = get_info(text)
     flag = False
     for to_info in text_s:
         if to_info['id'] == id_str:
-            res = execCmd('sudo transmission-remote -n "{}" -t {} -r'.format(_transmission_user_pw,id_str))
+            res = execCmd('transmission-remote -n "{}" -t {} -r'.format(_transmission_user_pw,id_str))
             if "success" not in res:
                 print('remove torrent fail:')
                 for k, v in to_info.items():
                     print('{} : {}'.format(k, v))
 
             if os.path.exists(os.path.join(download_path, to_info['name'])):
-                cmd_str = 'sudo rm -rf {}'.format(os.path.join(download_path, to_info['name']))
+                cmd_str = 'rm -rf {}'.format(os.path.join(download_path, to_info['name']))
                 ret_val = os.system(cmd_str)
                 if ret_val != 0:
                     print('script `{}` returns {}'.format(cmd_str, ret_val))
@@ -465,20 +362,14 @@ def remove_torrent(op_str):
     if flag is False:
         print('cat find this torrent id in torrent list, please use cmd "tls" ')
 
-
 class TorrentBot(ContextDecorator):
     def __init__(self):
         super(TorrentBot, self).__init__()
         self.torrent_url = get_url('torrents.php')
-
-        self.browser = webdriver.Chrome(options=options, executable_path=chrome_driver)
-        if osName == 'Linux':
-            self.browser.command_executor._commands["send_command"] = (
-                "POST", '/session/$sessionId/chromium/send_command')
-            params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_path}}
-            command_result = self.browser.execute("send_command", params)
-
-        self.wait_browser = WebDriverWait(self.browser, 5)
+        self.cookie_jar = RequestsCookieJar()
+        for k, v in byrbt_cookies.items():
+            self.cookie_jar[k] = v
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
         self.tags = ['免费', '免费&2x上传']
 
     def __enter__(self):
@@ -489,59 +380,6 @@ class TorrentBot(ContextDecorator):
         print('退出')
         print('保存数据')
         pickle.dump((old_torrent, current_torrent), open('./torrent.pkl', 'wb'), protocol=2)
-        print('清理chrome线程')
-        kill_chrome()
-
-    def clear_browse(self):
-
-        self.browser.delete_all_cookies()
-        self.browser.get(self.torrent_url)
-        for cookie in byrbt_cookies:
-            self.browser.add_cookie({
-                "domain": ".byr.cn",
-                "name": cookie,
-                "value": byrbt_cookies[cookie],
-                "path": '/',
-                "expires": None
-            })
-        self.browser.get(self.torrent_url)
-
-    def init(self, url=None):
-        print('初始化...')
-        self.browser.quit()
-        del self.browser
-        self.browser = None
-        kill_chrome()
-        print('清理完毕')
-        while True:
-            self.browser = webdriver.Chrome(options=options, executable_path=chrome_driver)
-            if osName == 'Linux':
-                self.browser.command_executor._commands["send_command"] = (
-                    "POST", '/session/$sessionId/chromium/send_command')
-                params = {'cmd': 'Page.setDownloadBehavior',
-                          'params': {'behavior': 'allow', 'downloadPath': download_path}}
-                command_result = self.browser.execute("send_command", params)
-            self.browser.get(self.torrent_url)
-            for cookie in byrbt_cookies:
-                self.browser.add_cookie({
-                    "domain": ".byr.cn",
-                    "name": cookie,
-                    "value": byrbt_cookies[cookie],
-                    "path": '/',
-                    "expires": None
-                })
-
-            self.wait_browser = WebDriverWait(self.browser, 5)
-            print('初始化完毕！')
-            if url is not None:
-                try:
-                    self.browser.get(url)
-                    time.sleep(1)
-                    if self.browser.current_url == url:
-                        break
-
-                except:
-                    pass
 
     def remove(self):
         current_torrent.reverse()
@@ -549,20 +387,20 @@ class TorrentBot(ContextDecorator):
         current_torrent.reverse()
         old_torrent.append(torrent[0])
         torrent_file = torrent[1].strip('.torrent')
-        text = execCmd('sudo transmission-remote -n "{}" -l'.format(_transmission_user_pw))
+        text = execCmd('transmission-remote -n "{}" -l'.format(_transmission_user_pw))
         text_s, sum_size = get_info(text)
         flag = False
         for to_info in text_s:
             if to_info['name'] == torrent_file:
                 flag = True
-                res = execCmd('sudo transmission-remote -n "{}" -t {} -r'.format(_transmission_user_pw,to_info['id']))
+                res = execCmd('transmission-remote -n "{}" -t {} -r'.format(_transmission_user_pw,to_info['id']))
                 if "success" not in res:
                     print('remove torrent fail:')
                     for k, v in to_info.items():
                         print('{} : {}'.format(k, v))
 
                 if os.path.exists(os.path.join(download_path, to_info['name'])):
-                    cmd_str = 'sudo rm -rf {}'.format(os.path.join(download_path, to_info['name']))
+                    cmd_str = 'rm -rf {}'.format(os.path.join(download_path, to_info['name']))
                     ret_val = os.system(cmd_str)
                     if ret_val != 0:
                         print('script `{}` returns {}'.format(cmd_str, ret_val))
@@ -578,39 +416,37 @@ class TorrentBot(ContextDecorator):
             print('cat find this torrent id in torrent list, please use cmd "tls" ')
 
     def download(self, torrent_id):
-        detail_url = 'details.php?id={}'.format(torrent_id)
-        detail_url = get_url(detail_url)
-        try:
-            self.browser.get(detail_url)
-            name_element = self.wait_browser.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR,
-                                                '#outer > table:nth-child(2) > tbody > tr:nth-child(1) > td.rowfollow > a.index'))
-            )
-            file_name = name_element.text
-            download_btn = self.wait_browser.until(
-                EC.presence_of_element_located((By.CSS_SELECTOR,
-                                                '#outer > table:nth-child(2) > tbody > tr:nth-child(5) > td.rowfollow > a:nth-child(1) > b > font'))
-            )
-            download_btn.click()
+        download_url = 'download.php?id={}'.format(torrent_id)
+        download_url = get_url(download_url)
+        for i in range(5):
+            try:
+                torrent = requests.get(download_url, cookies=self.cookie_jar, headers=self.headers)
+                torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1].encode('utf-8', 'ignore').decode('utf-8'))
+                print(torrent_file_name)
+                with open(os.path.join(download_path, torrent_file_name), 'wb') as f:
+                    f.write(torrent.content)
+                break
 
-        except:
-            print('Error 3')
-            return False
+            except:
+                print('login failed')
+                byrbt_cookies = load_cookie()
+                self.__init__()
+                continue
 
         index = 20
         while index > 0:
-            if os.path.exists(os.path.join(download_path, file_name)):
+            if os.path.exists(os.path.join(download_path, torrent_file_name)):
                 if osName == 'Linux':
-                    torrent_file_path = os.path.join(download_path, file_name)
+                    torrent_file_path = os.path.join(download_path, torrent_file_name)
                     cmd_str = "transmission-remote -n '{}' -a {}".format(_transmission_user_pw,torrent_file_path)
                     ret_val = os.system(cmd_str)
                     if ret_val != 0:
                         print('script `{}` returns {}'.format(cmd_str, ret_val))
                         return True
                     else:
-                        print('添加种子： {}'.format(file_name))
+                        print('添加种子： {}'.format(torrent_file_name))
 
-                    current_torrent.append((torrent_id, file_name))
+                    current_torrent.append((torrent_id, torrent_file_name))
 
                     if len(current_torrent) > max_torrent:
                         self.remove()
@@ -625,20 +461,15 @@ class TorrentBot(ContextDecorator):
         return True
 
     def start(self):
-        index = 12
         while True:
-            self.init(url=self.torrent_url)
             print('扫描种子列表')
             try:
-                time.sleep(1)
-                self.browser.get(self.torrent_url)
-                time.sleep(1)
-                torrent_table = self.wait_browser.until(
-                    EC.presence_of_all_elements_located((By.XPATH,
-                                                         '//*[@id="outer"]/table/tbody/tr/td/table/tbody/tr'))
-                )
+                torrents_soup = BeautifulSoup(requests.get(self.torrent_url, cookies=self.cookie_jar, headers=self.headers).content)
+                torrent_table = torrents_soup.select('.torrents > form > tr')[1:]
+                pass
             except:
-                print('Error 1')
+                byrbt_cookies = load_cookie()
+                self.__init__()
                 continue
             torrent_infos = _get_torrent_info(torrent_table)
 
@@ -650,26 +481,16 @@ class TorrentBot(ContextDecorator):
             print('可用种子：')
             for i, info in enumerate(ok_torrent):
                 print('{} : {}'.format(i, info))
-            flag = True
             for torrent in ok_torrent:
                 if self.download(torrent['seed_id']) is False:
-                    flag = False
-                    break
-
-            if flag is False:
-                self.browser.quit()
-                print('Error 2')
-                continue
+                    print('{} download fail'.format(torrent['title']))
+                    continue
 
             time.sleep(300)
-            index = index - 1
-            self.browser.quit()
-
 
 def main():
     with TorrentBot() as byrbt_bot:
         byrbt_bot.start()
-
 
 if __name__ == '__main__':
     byrbt_cookies = load_cookie()
