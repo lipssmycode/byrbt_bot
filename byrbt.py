@@ -347,7 +347,7 @@ def remove_torrent(op_str):
                     print('{} : {}'.format(k, v))
 
             if os.path.exists(os.path.join(download_path, to_info['name'])):
-                cmd_str = 'rm -rf {}'.format(os.path.join(download_path, to_info['name']))
+                cmd_str = 'rm -rf "{}"'.format(os.path.join(download_path, to_info['name']))
                 ret_val = os.system(cmd_str)
                 if ret_val != 0:
                     print('script `{}` returns {}'.format(cmd_str, ret_val))
@@ -400,7 +400,7 @@ class TorrentBot(ContextDecorator):
                         print('{} : {}'.format(k, v))
 
                 if os.path.exists(os.path.join(download_path, to_info['name'])):
-                    cmd_str = 'rm -rf {}'.format(os.path.join(download_path, to_info['name']))
+                    cmd_str = 'rm -rf "{}"'.format(os.path.join(download_path, to_info['name']))
                     ret_val = os.system(cmd_str)
                     if ret_val != 0:
                         print('script `{}` returns {}'.format(cmd_str, ret_val))
