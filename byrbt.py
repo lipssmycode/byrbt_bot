@@ -246,7 +246,7 @@ def download_torrent(op_str):
     download_url = get_url(download_url)
     try:
         torrent = requests.get(download_url, cookies=cookie_jar, headers=headers)
-        torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1])
+        torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1].encode('ascii', 'ignore').decode('ascii')).replace(' ', '#')
         with open(os.path.join(download_path, torrent_file_name), 'wb') as f:
             f.write(torrent.content)
 
@@ -421,7 +421,7 @@ class TorrentBot(ContextDecorator):
         for i in range(5):
             try:
                 torrent = requests.get(download_url, cookies=self.cookie_jar, headers=self.headers)
-                torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1].encode('utf-8', 'ignore').decode('utf-8'))
+                torrent_file_name = str(torrent.headers['Content-Disposition'].split(';')[1].strip().split('=')[-1][1:-1].encode('ascii', 'ignore').decode('ascii')).replace(' ', '#')
                 print(torrent_file_name)
                 with open(os.path.join(download_path, torrent_file_name), 'wb') as f:
                     f.write(torrent.content)
