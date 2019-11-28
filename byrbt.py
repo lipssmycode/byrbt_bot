@@ -218,6 +218,8 @@ def get_ok_torrent(torrent_infos):
     for torrent_info in torrent_infos:
         if torrent_info['seed_id'] in old_torrent:
             continue
+        if 'GB' not in torrent_info['file_size']:
+            continue
         if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
             continue
         if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
@@ -329,8 +331,10 @@ def get_info(text):
         text_s.append(torrent)
     sum_to = sum_to.split()
     sum_size = sum_to[1] + sum_to[2]
-    if 'GB' not in sum_size:
-        sum_size['size'] = '1GB'
+    if 'GB' in sum_size or 'TB' in sum_size:
+        pass
+    else:
+        sum_size = '1GB'
 
     return text_s, sum_size
 
