@@ -402,7 +402,7 @@ class TorrentBot(ContextDecorator):
             return
         torrent_len = len(text_s)
         while torrent_len > max_torrent:
-            text_s.sort(key=lambda x: int(x['id'].strip("*"), reverse=False)
+            text_s.sort(key=lambda x: int(x['id'].strip("*")), reverse=False)
             remove_torrent_info = text_s.pop(0)
             res = execCmd('transmission-remote -n "{}" -t {} --remove-and-delete'.format(_transmission_user_pw,
                                                                                          remove_torrent_info['id']))
