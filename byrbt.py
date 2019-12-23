@@ -215,34 +215,38 @@ def get_torrent(torrent_infos, tags):
 
 def get_ok_torrent(torrent_infos):
     ok_infos = list()
-    for torrent_info in torrent_infos:
-        if torrent_info['seed_id'] in old_torrent:
-            continue
-        if 'GB' not in torrent_info['file_size'][0]:
-            continue
-        if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
-            continue
-        if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
-                0.6:
-            continue
-
-        ok_infos.append(torrent_info)
-    if len(ok_infos) >= int(0.2 * len(torrent_infos)): # 遇到free或者免费种子太过了，择优选取
-        torrent_infos = list()
-        torrent_infos.extend(ok_infos)
-        ok_infos = list()
+    if len(torrent_infos) >= 20:  # 遇到free或者免费种子太过了，择优选取
+        print('ok种子过多，怀疑free了。。。')
         for torrent_info in torrent_infos:
-            if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
-                    20:
+            if torrent_info['seed_id'] in old_torrent:
+                continue
+            if 'GB' not in torrent_info['file_size'][0]:
+                continue
+            if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
+                continue
+            if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
+                    torrent_info['seeding']) < 20:
                 continue
             file_size = torrent_info['file_size'][0]
-            file_size = file_size.replace('GB','')
+            file_size = file_size.replace('GB', '')
             file_size = float(file_size.strip())
             if file_size < 20.0:
                 continue
-            
             ok_infos.append(torrent_info)
-        
+    else:
+        for torrent_info in torrent_infos:
+            if torrent_info['seed_id'] in old_torrent:
+                continue
+            if 'GB' not in torrent_info['file_size'][0]:
+                continue
+            if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
+                continue
+            if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
+                    0.6:
+                continue
+
+            ok_infos.append(torrent_info)
+
     return ok_infos
 
 
