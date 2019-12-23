@@ -218,7 +218,7 @@ def get_ok_torrent(torrent_infos):
     for torrent_info in torrent_infos:
         if torrent_info['seed_id'] in old_torrent:
             continue
-        if 'GB' not in torrent_info['file_size']:
+        if 'GB' not in torrent_info['file_size'][0]:
             continue
         if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
             continue
@@ -232,12 +232,6 @@ def get_ok_torrent(torrent_infos):
         torrent_infos.extend(ok_infos)
         ok_infos = list()
         for torrent_info in torrent_infos:
-            if torrent_info['seed_id'] in old_torrent:
-                continue
-            if 'GB' not in torrent_info['file_size']:
-                continue
-            if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
-                continue
             if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
                     20:
                 continue
