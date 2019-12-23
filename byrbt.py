@@ -235,7 +235,7 @@ def get_ok_torrent(torrent_infos):
             if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(torrent_info['seeding']) < \
                     20:
                 continue
-            file_size = torrent_info['file_size']
+            file_size = torrent_info['file_size'][0]
             file_size = file_size.replace('GB','')
             file_size = float(file_size.strip())
             if file_size < 20.0:
