@@ -19,6 +19,19 @@ from bs4 import BeautifulSoup
 
 from decaptcha import DeCaptcha
 
+# ##################需要配置的变量###################
+_username = '用户名'
+_passwd = '密码'
+_transmission_user_pw = 'user:passwd'  # transmission的用户名和密码，按照格式填入
+_windows_download_path = './torrent'  # windows测试下载种子路径
+_linux_download_path = '<path_to_download_dir>'  # linux服务器下载种子的路径
+_torrent_infos = './torrent.pkl'  # 种子信息保存文件路径
+max_torrent = 20  # 最大种子数
+search_time = 120  # 轮询种子时间，默认120秒
+# ##################################################
+_decaptcha_model = 'captcha_classifier.pkl'  # 验证码识别模型
+_cookies_save_path = 'ByrbtCookies.pickle'  # cookies保存路径
+
 # 判断平台
 osName = platform.system()
 if osName == 'Windows':
@@ -50,27 +63,25 @@ _cat_map = {
     '体育': 'sport',
     '记录': 'documentary',
 }
-_username = '用户名'
-_passwd = '密码'
-_transmission_user_pw = 'user:passwd'
+
 
 # 全局变量
 download_path = None
+byrbt_cookies = None
 
 if osName == 'Windows':
-    download_path = os.path.abspath('./torrent')
+    download_path = os.path.abspath(_windows_download_path)
 elif osName == 'Linux':
-    download_path = os.path.abspath('<path_to_download_dir>')
+    download_path = os.path.abspath(_linux_download_path)
 else:
     raise Exception('not support system! {}'.format(osName))
 
 decaptcha = DeCaptcha()
-decaptcha.load_model('captcha_classifier.pkl')
-byrbt_cookies = None
-max_torrent = 20
+decaptcha.load_model(_decaptcha_model)
+
 old_torrent = list()
-if os.path.exists('torrent.pkl'):
-    old_torrent = pickle.load(open('torrent.pkl', 'rb'))
+if os.path.exists(_torrent_infos):
+    old_torrent = pickle.load(open(_torrent_infos, 'rb'))
 
 
 def get_url(url):
@@ -100,7 +111,7 @@ def login():
             for k, v in session.cookies.items():
                 cookies[k] = v
 
-            with open('ByrbtCookies.pickle', 'wb') as f:
+            with open(_cookies_save_path, 'wb') as f:
                 pickle.dump(cookies, f)
             return cookies
 
@@ -110,12 +121,13 @@ def login():
 
 
 def load_cookie():
-    if os.path.exists('ByrbtCookies.pickle'):
-        print('find ByrbtCookies.pickle, loading cookies')
-        read_path = open('ByrbtCookies.pickle', 'rb')
+    global byrbt_cookies
+    if os.path.exists(_cookies_save_path):
+        print('find {}, loading cookies'.format(_cookies_save_path))
+        read_path = open(_cookies_save_path, 'rb')
         byrbt_cookies = pickle.load(read_path)
     else:
-        print('not find ByrbtCookies.pickle, get cookies...')
+        print('not find {}, get cookies...'.format(_cookies_save_path))
         byrbt_cookies = login()
 
     return byrbt_cookies
@@ -215,7 +227,7 @@ def get_torrent(torrent_infos, tags):
 
 def get_ok_torrent(torrent_infos):
     ok_infos = list()
-    if len(torrent_infos) >= 20:  # 遇到free或者免费种子太过了，择优选取
+    if len(torrent_infos) >= 20:  # 遇到free或者免费种子太多了，择优选取
         print('ok种子过多，怀疑free了。。。')
         for torrent_info in torrent_infos:
             if torrent_info['seed_id'] in old_torrent:
@@ -412,7 +424,7 @@ class TorrentBot(ContextDecorator):
     def __exit__(self, exc_type, exc_val, exc_tb):
         print('退出')
         print('保存数据')
-        pickle.dump(old_torrent, open('./torrent.pkl', 'wb'), protocol=2)
+        pickle.dump(old_torrent, open(_torrent_infos, 'wb'), protocol=2)
 
     def remove(self):
         text = execCmd('transmission-remote -n "{}" -l'.format(_transmission_user_pw))
@@ -443,6 +455,7 @@ class TorrentBot(ContextDecorator):
             torrent_len = torrent_len - 1
 
     def download(self, torrent_id):
+        global byrbt_cookies
         download_url = 'download.php?id={}'.format(torrent_id)
         download_url = get_url(download_url)
         torrent_file_name = None
@@ -488,6 +501,7 @@ class TorrentBot(ContextDecorator):
         return True
 
     def start(self):
+        global byrbt_cookies
         while True:
             print('扫描种子列表')
             try:
@@ -514,7 +528,7 @@ class TorrentBot(ContextDecorator):
                     print('{} download fail'.format(torrent['title']))
                     continue
             self.remove()
-            time.sleep(300)
+            time.sleep(search_time)
 
 
 def main():
