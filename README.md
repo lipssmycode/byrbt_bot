@@ -3,15 +3,15 @@
 
 北邮人BT只要上传量高于4TB，并且分享率大于3.05，就能成为**Veteran User**，账户永久保存
 
-![image-20200330161046856](images\image-20200330161046856.png)
+![image-20200330161046856](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330161046856.png)
 
 本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传32TB），采用transmission作为下载器，可以从Web端查看种子下载情况
 
-![image-20200330163255569](images\image-20200330163255569.png)
+![image-20200330163255569](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330163255569.png)
 
 （疫情期间，免费种子较少）
 
-![image-20200330163105285](images\image-20200330163105285.png)
+![image-20200330163105285](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330163105285.png)
 
 - [x] 支持识别验证码登录（感谢**[decaptcha](https://github.com/bumzy/decaptcha)**项目）
 - [x] 支持下载种子(感谢**[byrbt_bot](https://github.com/Jason2031/byrbt_bot)**项目)
