@@ -33,6 +33,7 @@
    ```shell
    pip install -r requirements.txt
    ```
+   sklearn版本为0.22.1可以使用captcha_classifier_sklearn0.22.1.pkl模型，改名为captcha_classifier.pkl即可
 
 3. #### 安装Transmission
 
@@ -125,7 +126,7 @@
    transmission-daemon -g <配置所在的文件夹路径>
    ```
 
-   访问ip:9091登录web端
+   访问ip:9091登录web端，出现红种需自行删除，尚未解决自动删除红种的问题
 
 4. #### 在byrbt.py配置信息
 
