@@ -1,5 +1,6 @@
 # Python 3.7.4 推荐用anaconda装
 beautifulsoup4==4.8.0
+lxml==4.4.1
 numpy==1.17.2
 pillow==6.2.0
 # pillow==7.0.0 好像6.2.2以下版本有漏洞？
