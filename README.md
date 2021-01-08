@@ -93,7 +93,7 @@
        "ratio-limit-enabled": false,
        "rename-partial-files": true,
        "rpc-authentication-required": true,//修改
-    "rpc-bind-address": "0.0.0.0", //修改
+       "rpc-bind-address": "0.0.0.0", //修改
        "rpc-enabled": true, //修改
        "rpc-host-whitelist": "",//修改
        "rpc-host-whitelist-enabled": true,//修改
