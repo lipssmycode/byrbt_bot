@@ -5,7 +5,8 @@
 
 ![image-20200330161046856](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330161046856.png)
 
-本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传32TB），采用transmission作为下载器，可以从Web端查看种子下载情况
+本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传96TB），采用transmission作为下载器，可以从Web端查看种子下载情况
+![image](http://bt.byr.cn/promotionlink.php?key=1002adcfc5c4167872e117f4db1276e9)
 
 ![image-20200330163255569](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330163255569.png)
 
