@@ -295,7 +295,7 @@ def download_torrent(op_str):
         if os.path.exists(os.path.join(download_path, torrent_file_name)):
             if osName == 'Linux':
                 torrent_file_path = os.path.join(download_path, torrent_file_name)
-                cmd_str = "transmission-remote -n '{}' -a {}".format(_transmission_user_pw, torrent_file_path)
+                cmd_str = 'transmission-remote -n "{}" -a "{}"'.format(_transmission_user_pw, torrent_file_path)
                 ret_val = os.system(cmd_str)
                 if ret_val != 0:
                     print('script `{}` returns {}'.format(cmd_str, ret_val))
@@ -482,7 +482,7 @@ class TorrentBot(ContextDecorator):
             if torrent_file_name is not None and os.path.exists(os.path.join(download_path, torrent_file_name)):
                 if osName == 'Linux':
                     torrent_file_path = os.path.join(download_path, torrent_file_name)
-                    cmd_str = 'transmission-remote -n "{}" -a {}'.format(_transmission_user_pw, torrent_file_path)
+                    cmd_str = 'transmission-remote -n "{}" -a "{}"'.format(_transmission_user_pw, torrent_file_path)
                     ret_val = os.system(cmd_str)
                     if ret_val != 0:
                         print('script `{}` returns {}'.format(cmd_str, ret_val))
