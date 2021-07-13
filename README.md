@@ -64,13 +64,13 @@
        "blocklist-url": "http://www.example.com/blocklist",
        "cache-size-mb": 4,
        "dht-enabled": true,
-       "download-dir": "/home/.bt", //修改为种子文件下载路径
+       "download-dir": "/home/.bt", //修改为种子文件下载路径（需新建一个空文件夹）
        "download-queue-enabled": true,
        "download-queue-size": 5,
        "encryption": 1,
        "idle-seeding-limit": 30,
        "idle-seeding-limit-enabled": false,
-       "incomplete-dir": "/home/.bt", //修改为种子文件下载路径
+       "incomplete-dir": "/home/.bt", //修改为种子文件下载路径（需新建一个空文件夹）
        "incomplete-dir-enabled": false,
        "lpd-enabled": false,
        "message-level": 1,
