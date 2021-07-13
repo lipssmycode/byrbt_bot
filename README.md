@@ -1,6 +1,8 @@
 # brybt_bot
 **北邮人BT全自动（大概）下载~~刷流~~机器人**
 
+脚本很早以前写的，欢迎自行修改完善
+
 北邮人BT只要上传量高于4TB，并且分享率大于3.05，就能成为**Veteran User**，账户永久保存
 
 ![image-20200330161046856](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330161046856.png)
