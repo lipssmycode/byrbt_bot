@@ -2,7 +2,7 @@
 beautifulsoup4==4.8.0
 lxml==4.4.1
 numpy==1.17.2
-pillow==6.2.0
+pillow==9.0.0
 # pillow==7.0.0 好像6.2.2以下版本有漏洞？
 requests==2.22.0
 scikit-learn==0.21.3
