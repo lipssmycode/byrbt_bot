@@ -1,0 +1,5 @@
+.idea
+
+*.log
+transmission
+__pycache__
