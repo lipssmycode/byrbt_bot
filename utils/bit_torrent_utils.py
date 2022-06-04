@@ -24,7 +24,11 @@ class BitTorrent:
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
             with open(filepath, 'rb') as f:
-                return c.add_torrent(f, paused=paused)
+                res = c.add_torrent(f, paused=paused)
+                if res is None:
+                    return None
+                time.sleep(1)  # wait 1s for torrent add to transmission
+                return c.get_torrent(res.id)
         except Exception as e:
             print(repr(e))
             return None

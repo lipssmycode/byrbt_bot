@@ -21,28 +21,6 @@ from bs4 import BeautifulSoup
 
 from utils.bit_torrent_utils import BitTorrent
 
-_tag_map = {
-    'free': '免费',
-    'twoup': '2x上传',
-    'twoupfree': '免费&2x上传',
-    'halfdown': '50%下载',
-    'twouphalfdown': '50%下载&2x上传',
-    'thirtypercent': '30%下载',
-}
-
-_cat_map = {
-    '电影': 'movie',
-    '剧集': 'episode',
-    '动漫': 'anime',
-    '音乐': 'music',
-    '综艺': 'show',
-    '游戏': 'game',
-    '软件': 'software',
-    '资料': 'material',
-    '体育': 'sport',
-    '记录': 'documentary',
-}
-
 
 class TorrentBot(ContextDecorator):
     def __init__(self, config, login, torrent_util):
@@ -51,7 +29,7 @@ class TorrentBot(ContextDecorator):
         self.login = login
         self.torrent_util = torrent_util
         self.base_url = str(config.get_bot("byrbt-url"))
-        self.torrent_url = self.get_url('torrents.php')
+        self.torrent_url = self._get_url('torrents.php')
         self.cookie_jar = RequestsCookieJar()
         self.byrbt_cookies = login.load_cookie()
         for k, v in self.byrbt_cookies.items():
@@ -75,6 +53,28 @@ class TorrentBot(ContextDecorator):
             self.torrent_min_size = 1
         self.torrent_min_size = self.torrent_min_size * 1024 * 1024 * 1024
 
+        self._tag_map = {
+            'free': '免费',
+            'twoup': '2x上传',
+            'twoupfree': '免费&2x上传',
+            'halfdown': '50%下载',
+            'twouphalfdown': '50%下载&2x上传',
+            'thirtypercent': '30%下载',
+        }
+
+        self._cat_map = {
+            '电影': 'movie',
+            '剧集': 'episode',
+            '动漫': 'anime',
+            '音乐': 'music',
+            '综艺': 'show',
+            '游戏': 'game',
+            '软件': 'software',
+            '资料': 'material',
+            '体育': 'sport',
+            '记录': 'documentary',
+        }
+
     def __enter__(self):
         print('启动byrbt_bot!')
         if os.path.exists('torrent.pkl'):
@@ -86,20 +86,21 @@ class TorrentBot(ContextDecorator):
         print('保存数据')
         pickle.dump(self.old_torrent, open('./torrent.pkl', 'wb'), protocol=2)
 
-    @staticmethod
-    def get_tag(tag):
+    def _get_url(self, url):
+        return self.base_url + url
+
+    def _get_tag(self, tag):
         try:
             if tag == '':
                 return ''
             else:
                 tag = tag.split('_')[0]
 
-            return _tag_map[tag]
+            return self._tag_map[tag]
         except KeyError:
             return ''
 
-    @staticmethod
-    def get_torrent_info(table):
+    def get_torrent_info_filter_by_tag(self, table, tags):
         assert isinstance(table, list)
         torrent_infos = list()
         for item in table:
@@ -139,7 +140,7 @@ class TorrentBot(ContextDecorator):
                 tags.remove('recommended')
 
             if 'class' in tds[1].select('table > tr')[0].attrs.keys():
-                tag = TorrentBot.get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
+                tag = self._get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
             else:
                 tag = ''
 
@@ -167,16 +168,12 @@ class TorrentBot(ContextDecorator):
             torrent_info['is_recommended'] = is_recommended
             torrent_infos.append(torrent_info)
 
-        return torrent_infos
-
-    @staticmethod
-    def get_torrent(torrent_infos, tags):
-        free_infos = list()
+        torrent_infos_filter_by_tag = list()
         for torrent_info in torrent_infos:
             if torrent_info['tag'] in tags:
-                free_infos.append(torrent_info)
+                torrent_infos_filter_by_tag.append(torrent_info)
 
-        return free_infos
+        return torrent_infos_filter_by_tag
 
     # 获取可用的种子的策略，可自行修改
     def get_ok_torrent(self, torrent_infos):
@@ -217,20 +214,24 @@ class TorrentBot(ContextDecorator):
                 ok_infos.append(torrent_info)
         return ok_infos
 
-    def get_url(self, url):
-        return self.base_url + url
-
-    def check_remove(self):
+    def check_remove(self, add_num=0):
         torrent_list = self.torrent_util.get_list()
         if torrent_list is None:
             print('get torrent list fail!')
+            return
 
-        torrent_len = len(torrent_list)
+        torrent_len = len(torrent_list) + add_num
         if torrent_len <= self.max_torrent_count:
             return
-        torrent_list.sort(key=lambda x: x.date_added)
-        while torrent_len > self.max_torrent_count:
+        torrent_list.sort(key=lambda x: (x.date_added, x.rateUpload))
+        while torrent_len > self.max_torrent_count and len(torrent_list) > 0:
             remove_torrent_info = torrent_list.pop(0)
+            if remove_torrent_info.status.checking:
+                continue
+            # rateUpload > 500KB/s
+            if (remove_torrent_info.status.downloading or remove_torrent_info.status.seeding) and \
+                    remove_torrent_info.rateUpload > 500000:
+                continue
             res = self.torrent_util.remove(remove_torrent_info.id, delete_data=True)
             if res:
                 print('remove torrent success: ' + str(remove_torrent_info))
@@ -240,7 +241,7 @@ class TorrentBot(ContextDecorator):
 
     def download(self, torrent_id):
         download_url = 'download.php?id={}'.format(torrent_id)
-        download_url = self.get_url(download_url)
+        download_url = self._get_url(download_url)
         flag = False
         r = None
         for i in range(5):
@@ -289,14 +290,27 @@ class TorrentBot(ContextDecorator):
             return False
 
     def start(self):
+        scan_interval_in_sec = 60
+        check_disk_space_interval_in_sec = 500
+        last_check_disk_space_time = -1
         while True:
+            now_time = int(time.time())
+            if now_time - last_check_disk_space_time > check_disk_space_interval_in_sec:
+                print('check disk space...')
+                if self.check_disk_space():
+                    last_check_disk_space_time = now_time
+                else:
+                    print('check disk space fail!')
+                    time.sleep(scan_interval_in_sec)
+                    continue
+
             print('scan torrent list...')
             flag = False
-            torrent_table = None
+            torrents_soup = None
+            torrent_infos = None
             try:
                 torrents_soup = BeautifulSoup(
                     requests.get(self.torrent_url, cookies=self.cookie_jar, headers=self.headers).content)
-                torrent_table = torrents_soup.select('.torrents > form > tr')[1:]
                 flag = True
             except Exception as e:
                 print(repr(e))
@@ -305,21 +319,31 @@ class TorrentBot(ContextDecorator):
             if flag is False:
                 print('login failed!')
                 break
-            torrent_infos = TorrentBot.get_torrent_info(torrent_table)
-            free_infos = TorrentBot.get_torrent(torrent_infos, self.tags)
+
+            try:
+                torrent_table = torrents_soup.select('.torrents > form > tr')[1:]
+                torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self.tags)
+            except Exception as e:
+                print(repr(e))
+                flag = False
+
+            if flag is False:
+                print('failed to parse torrent table!')
+                break
             print('free torrent list：')
-            for i, info in enumerate(free_infos):
+            for i, info in enumerate(torrent_infos):
                 print('{} : {} {} {}'.format(i, info['seed_id'], info['file_size'], info['title']))
-            ok_torrent = self.get_ok_torrent(free_infos)
+
+            ok_torrent = self.get_ok_torrent(torrent_infos)
             print('available torrent list：')
             for i, info in enumerate(ok_torrent):
                 print('{} : {} {} {}'.format(i, info['seed_id'], info['file_size'], info['title']))
+            self.check_remove(add_num=len(ok_torrent))
             for torrent in ok_torrent:
                 if self.download(torrent['seed_id']) is False:
                     print('{} download fail'.format(torrent['title']))
                     continue
-            self.check_remove()
-            time.sleep(60)
+            time.sleep(scan_interval_in_sec)
 
     def check_free_space_to_download(self, new_torrent_size):
         torrent_list = self.torrent_util.get_list()
@@ -336,9 +360,15 @@ class TorrentBot(ContextDecorator):
         if sum_size + free_space <= new_torrent_size:
             return False
 
-        torrent_list.sort(key=lambda x: x.date_added)
+        torrent_list.sort(key=lambda x: (x.date_added, x.rateUpload))
         while free_space <= new_torrent_size and len(torrent_list) > 0:
             remove_torrent_info = torrent_list.pop(0)
+            if remove_torrent_info.status.checking:
+                continue
+            # rateUpload > 500KB/s
+            if (remove_torrent_info.status.downloading or remove_torrent_info.status.seeding) and \
+                    remove_torrent_info.rateUpload > 500000:
+                continue
             res = self.torrent_util.remove(remove_torrent_info.id, delete_data=True)
             if res:
                 print('remove torrent success: ' + str(remove_torrent_info))
@@ -348,6 +378,38 @@ class TorrentBot(ContextDecorator):
             free_space += remove_torrent_info.total_size
 
         return self.torrent_util.get_free_space() > new_torrent_size
+
+    def check_disk_space(self):
+        free_space = self.torrent_util.get_free_space()
+        if free_space is None:
+            print('get download path free space fail!')
+            return False
+
+        if free_space <= 5000000000:  # 5GB
+            print('low disk space, clear torrent...')
+            torrent_list = self.torrent_util.get_list()
+            if torrent_list is None:
+                print('get torrent list fail!')
+                return False
+            torrent_list.sort(key=lambda x: (x.date_added, x.rateUpload))
+            while free_space <= 5000000000 and len(torrent_list) > 0:
+                remove_torrent_info = torrent_list.pop(0)
+                if remove_torrent_info.status.checking:
+                    continue
+                # rateUpload > 500KB/s
+                if (remove_torrent_info.status.downloading or remove_torrent_info.status.seeding) and \
+                        remove_torrent_info.rateUpload > 500000:
+                    continue
+                res = self.torrent_util.remove(remove_torrent_info.id, delete_data=True)
+                if res:
+                    print('remove torrent success: ' + str(remove_torrent_info))
+                else:
+                    print('remove torrent fail: ' + str(remove_torrent_info))
+                    return False
+                free_space += remove_torrent_info.total_size
+            return self.torrent_util.get_free_space() > 5000000000
+
+        return True
 
 
 if __name__ == '__main__':
