@@ -27,5 +27,7 @@ services:
     volumes:
       - ./app/config:/config
       - ./app/data:/data
+    depends_on:
+      - transmission
     restart: unless-stopped
     network_mode: host

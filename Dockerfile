@@ -77,4 +77,4 @@ COPY . ./
 
 RUN pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 
-CMD sleep 60; python3 bot.py
+CMD ["python3", "bot.py"]

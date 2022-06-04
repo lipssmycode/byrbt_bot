@@ -10,6 +10,8 @@
 from config import ReadConfig
 from login import LoginTool
 
+import signal
+import sys
 import os
 import pickle
 import re
@@ -20,6 +22,10 @@ from requests.cookies import RequestsCookieJar
 from bs4 import BeautifulSoup
 
 from utils.bit_torrent_utils import BitTorrent
+
+
+def _handle_interrupt(signum, frame):
+    sys.exit()  # will trigger a exception, causing __exit__ to be called
 
 
 class TorrentBot(ContextDecorator):
@@ -79,6 +85,9 @@ class TorrentBot(ContextDecorator):
 
     def __enter__(self):
         print('启动byrbt_bot!')
+        time.sleep(5)  # wait transmission process
+        signal.signal(signal.SIGINT, _handle_interrupt)
+        signal.signal(signal.SIGTERM, _handle_interrupt)
         os.makedirs(os.path.dirname(self.torrent_download_record_save_path), mode=0o755, exist_ok=True)
         if os.path.exists(self.torrent_download_record_save_path):
             self.old_torrent = pickle.load(open(self.torrent_download_record_save_path, 'rb'))
