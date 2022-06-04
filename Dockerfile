@@ -75,6 +75,7 @@ WORKDIR /
 
 COPY . ./
 
+RUN chmod 777 ./config/config.ini
 RUN pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 
 CMD ["python3","bot.py"]
