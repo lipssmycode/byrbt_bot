@@ -24,5 +24,8 @@ services:
     build:
       context: .
     image: smyyan/byrbt-bot-transmission
+    volumes:
+      - ./app/config:/config
+      - ./app/data:/data
     restart: unless-stopped
     network_mode: host

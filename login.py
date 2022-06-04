@@ -29,15 +29,16 @@ class LoginTool:
         self.login_url = self.get_url('login.php')
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+        self.cookie_save_path = './data/ByrbtCookies.pickle'
 
     def get_url(self, url):
         return self.base_url + url
 
     def load_cookie(self):
         byrbt_cookies = None
-        if os.path.exists('ByrbtCookies.pickle'):
+        if os.path.exists(self.cookie_save_path):
             print('find ByrbtCookies.pickle, loading cookies')
-            read_path = open('ByrbtCookies.pickle', 'rb')
+            read_path = open(self.cookie_save_path, 'rb')
             byrbt_cookies = pickle.load(read_path)
         else:
             print('not find ByrbtCookies.pickle, get cookies...')
@@ -51,7 +52,8 @@ class LoginTool:
             login_content = session.get(self.login_url)
             login_soup = BeautifulSoup(login_content.text, 'lxml')
 
-            img_url = self.base_url + login_soup.select('#nav_block > form > table > tr:nth-of-type(3) img')[0].attrs['src']
+            img_url = self.base_url + login_soup.select('#nav_block > form > table > tr:nth-of-type(3) img')[0].attrs[
+                'src']
             img_file = Image.open(BytesIO(session.get(img_url).content))
 
             captcha_text = decaptcha.decode(img_file)
@@ -66,9 +68,11 @@ class LoginTool:
                 cookies = {}
                 for k, v in session.cookies.items():
                     cookies[k] = v
-
-                with open('ByrbtCookies.pickle', 'wb') as f:
+                os.makedirs(os.path.dirname(self.cookie_save_path), mode=0o755, exist_ok=True)
+                with open(self.cookie_save_path, 'wb') as f:
                     pickle.dump(cookies, f)
                 return cookies
 
             time.sleep(1)
+
+        return None

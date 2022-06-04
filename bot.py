@@ -32,12 +32,12 @@ class TorrentBot(ContextDecorator):
         self.torrent_url = self._get_url('torrents.php')
         self.cookie_jar = RequestsCookieJar()
         self.byrbt_cookies = login.load_cookie()
-        for k, v in self.byrbt_cookies.items():
-            self.cookie_jar[k] = v
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
-        self.tags = ['免费', '免费&2x上传']
+        if self.byrbt_cookies is not None:
+            for k, v in self.byrbt_cookies.items():
+                self.cookie_jar[k] = v
+
         self.old_torrent = list()
+        self.torrent_download_record_save_path = './data/torrent.pkl'
         self.max_torrent_count = int(config.get_bot_config("max-torrent"))
         # all size in Byte
         self.max_torrent_total_size = int(config.get_bot_config("max-torrent-total-size"))
@@ -53,6 +53,9 @@ class TorrentBot(ContextDecorator):
             self.torrent_min_size = 1
         self.torrent_min_size = self.torrent_min_size * 1024 * 1024 * 1024
 
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+        self.tags = ['免费', '免费&2x上传']
         self._tag_map = {
             'free': '免费',
             'twoup': '2x上传',
@@ -61,7 +64,6 @@ class TorrentBot(ContextDecorator):
             'twouphalfdown': '50%下载&2x上传',
             'thirtypercent': '30%下载',
         }
-
         self._cat_map = {
             '电影': 'movie',
             '剧集': 'episode',
@@ -77,14 +79,15 @@ class TorrentBot(ContextDecorator):
 
     def __enter__(self):
         print('启动byrbt_bot!')
-        if os.path.exists('torrent.pkl'):
-            self.old_torrent = pickle.load(open('torrent.pkl', 'rb'))
+        os.makedirs(os.path.dirname(self.torrent_download_record_save_path), mode=0o755, exist_ok=True)
+        if os.path.exists(self.torrent_download_record_save_path):
+            self.old_torrent = pickle.load(open(self.torrent_download_record_save_path, 'rb'))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         print('退出')
         print('保存数据')
-        pickle.dump(self.old_torrent, open('./torrent.pkl', 'wb'), protocol=2)
+        pickle.dump(self.old_torrent, open(self.torrent_download_record_save_path, 'wb'), protocol=2)
 
     def _get_url(self, url):
         return self.base_url + url
@@ -253,6 +256,10 @@ class TorrentBot(ContextDecorator):
                 print(repr(e))
                 print('try login...')
                 self.byrbt_cookies = self.login.load_cookie()
+                if self.byrbt_cookies is not None:
+                    self.cookie_jar = RequestsCookieJar()
+                    for k, v in self.byrbt_cookies.items():
+                        self.cookie_jar[k] = v
                 time.sleep(1)
 
         if flag is False or r is None:
@@ -315,6 +322,10 @@ class TorrentBot(ContextDecorator):
             except Exception as e:
                 print(repr(e))
                 self.byrbt_cookies = self.login.load_cookie()
+                if self.byrbt_cookies is not None:
+                    self.cookie_jar = RequestsCookieJar()
+                    for k, v in self.byrbt_cookies.items():
+                        self.cookie_jar[k] = v
 
             if flag is False:
                 print('login failed!')
