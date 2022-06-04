@@ -25,7 +25,7 @@ class LoginTool:
     def __init__(self, config):
         self.config = config
         self.try_count = 5
-        self.base_url = str(config.get_bot("byrbt-url"))
+        self.base_url = str(config.get_bot_config("byrbt-url"))
         self.login_url = self.get_url('login.php')
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
@@ -58,8 +58,8 @@ class LoginTool:
 
             login_res = session.post(self.get_url('takelogin.php'),
                                      headers=self.headers,
-                                     data=dict(username=str(self.config.get_bot("username")),
-                                               password=str(self.config.get_bot("passwd")),
+                                     data=dict(username=str(self.config.get_bot_config("username")),
+                                               password=str(self.config.get_bot_config("passwd")),
                                                imagestring=captcha_text,
                                                imagehash=img_url.split('=')[-1]))
             if '最近消息' in login_res.text:

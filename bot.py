@@ -28,7 +28,7 @@ class TorrentBot(ContextDecorator):
         self.config = config
         self.login = login
         self.torrent_util = torrent_util
-        self.base_url = str(config.get_bot("byrbt-url"))
+        self.base_url = str(config.get_bot_config("byrbt-url"))
         self.torrent_url = self._get_url('torrents.php')
         self.cookie_jar = RequestsCookieJar()
         self.byrbt_cookies = login.load_cookie()
@@ -38,17 +38,17 @@ class TorrentBot(ContextDecorator):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
         self.tags = ['免费', '免费&2x上传']
         self.old_torrent = list()
-        self.max_torrent_count = int(config.get_bot("max-torrent"))
+        self.max_torrent_count = int(config.get_bot_config("max-torrent"))
         # all size in Byte
-        self.max_torrent_total_size = int(config.get_bot("max-torrent-total-size"))
+        self.max_torrent_total_size = int(config.get_bot_config("max-torrent-total-size"))
         if self.max_torrent_total_size is None or self.max_torrent_total_size < 0:
             self.max_torrent_total_size = 0
         self.max_torrent_total_size = self.max_torrent_total_size * 1024 * 1024 * 1024
-        self.torrent_max_size = int(config.get_bot("torrent-max-size"))
+        self.torrent_max_size = int(config.get_bot_config("torrent-max-size"))
         if self.torrent_max_size is None:
             self.torrent_max_size = 1024
         self.torrent_max_size = self.torrent_max_size * 1024 * 1024 * 1024
-        self.torrent_min_size = int(config.get_bot("torrent-min-size"))
+        self.torrent_min_size = int(config.get_bot_config("torrent-min-size"))
         if self.torrent_min_size is None or self.torrent_min_size < 1:
             self.torrent_min_size = 1
         self.torrent_min_size = self.torrent_min_size * 1024 * 1024 * 1024
@@ -413,7 +413,7 @@ class TorrentBot(ContextDecorator):
 
 
 if __name__ == '__main__':
-    config = ReadConfig(filepath='config.ini')
+    config = ReadConfig(filepath='config/config.ini')
     login = LoginTool(config)
     bit_torrent = BitTorrent(config)
     with TorrentBot(config, login, bit_torrent) as byrbt_bot:

@@ -14,11 +14,11 @@ import time
 
 class BitTorrent:
     def __init__(self, config):
-        self.host = config.get_bit_torrent('bit-torrent-host')
-        self.port = config.get_bit_torrent('bit-torrent-port')
-        self.username = config.get_bit_torrent('bit-torrent-username')
-        self.password = config.get_bit_torrent('bit-torrent-password')
-        self.download_path = config.get_bit_torrent('bit-torrent-download-path')
+        self.host = config.get_transmission_config('transmission-host')
+        self.port = config.get_transmission_config('transmission-port')
+        self.username = config.get_transmission_config('transmission-username')
+        self.password = config.get_transmission_config('transmission-password')
+        self.download_path = config.get_transmission_config('transmission-download-path')
 
     def download_from_file(self, filepath, paused=False):
         try:
@@ -81,6 +81,6 @@ class BitTorrent:
 
 
 if __name__ == '__main__':
-    config = ReadConfig(filepath='../config.ini')
+    config = ReadConfig(filepath='../config/config.ini')
     bit_torrent = BitTorrent(config)
     torrents = bit_torrent.get_list()
