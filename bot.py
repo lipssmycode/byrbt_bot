@@ -55,7 +55,7 @@ class TorrentBot(ContextDecorator):
 
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
-        self.tags = ['免费', '免费&2x上传']
+        self._filter_tags = ['免费', '免费&2x上传']
         self._tag_map = {
             'free': '免费',
             'twoup': '2x上传',
@@ -103,7 +103,7 @@ class TorrentBot(ContextDecorator):
         except KeyError:
             return ''
 
-    def get_torrent_info_filter_by_tag(self, table, tags):
+    def get_torrent_info_filter_by_tag(self, table, filter_tags):
         assert isinstance(table, list)
         torrent_infos = list()
         for item in table:
@@ -173,7 +173,7 @@ class TorrentBot(ContextDecorator):
 
         torrent_infos_filter_by_tag = list()
         for torrent_info in torrent_infos:
-            if torrent_info['tag'] in tags:
+            if torrent_info['tag'] in filter_tags:
                 torrent_infos_filter_by_tag.append(torrent_info)
 
         return torrent_infos_filter_by_tag
@@ -317,7 +317,8 @@ class TorrentBot(ContextDecorator):
             torrent_infos = None
             try:
                 torrents_soup = BeautifulSoup(
-                    requests.get(self.torrent_url, cookies=self.cookie_jar, headers=self.headers).content)
+                    requests.get(self.torrent_url, cookies=self.cookie_jar, headers=self.headers).content,
+                    features="lxml")
                 flag = True
             except Exception as e:
                 print(repr(e))
@@ -333,7 +334,8 @@ class TorrentBot(ContextDecorator):
 
             try:
                 torrent_table = torrents_soup.select('.torrents > form > tr')[1:]
-                torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self.tags)
+                torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self._filter_tags)
+                flag = True
             except Exception as e:
                 print(repr(e))
                 flag = False
@@ -424,7 +426,7 @@ class TorrentBot(ContextDecorator):
 
 
 if __name__ == '__main__':
-    config = ReadConfig(filepath='config/config.ini')
+    config = ReadConfig(filepath='app/config/config.ini')
     login = LoginTool(config)
     bit_torrent = BitTorrent(config)
     with TorrentBot(config, login, bit_torrent) as byrbt_bot:

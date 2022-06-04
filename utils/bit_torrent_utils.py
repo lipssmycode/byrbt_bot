@@ -81,6 +81,6 @@ class BitTorrent:
 
 
 if __name__ == '__main__':
-    config = ReadConfig(filepath='../config/config.ini')
+    config = ReadConfig(filepath='../app/config/config.ini')
     bit_torrent = BitTorrent(config)
     torrents = bit_torrent.get_list()

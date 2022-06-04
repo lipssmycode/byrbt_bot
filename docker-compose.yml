@@ -4,8 +4,8 @@ services:
     image: linuxserver/transmission:3.00-r5-ls123
     container_name: transmission
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=1009
+      - PGID=1009
       - TZ=Asia/Shanghai
       - TRANSMISSION_WEB_HOME=/combustion-release/
       - USER=admin
@@ -14,16 +14,16 @@ services:
       - ./transmission/data:/config
       - ./transmission/downloads:/downloads
       - ./transmission/watch:/watch
-    ports:
-      - "9091:9091"
-      - "51413:51413"
-      - "51413:51413/udp"
     restart: unless-stopped
     network_mode: host
   bot:
     build:
       context: .
     image: smyyan/byrbt-bot-transmission
+    environment:
+      - PUID=1009
+      - PGID=1009
+      - TZ=Asia/Shanghai
     volumes:
       - ./app/config:/config
       - ./app/data:/data
