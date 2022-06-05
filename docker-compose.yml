@@ -4,8 +4,8 @@ services:
     image: linuxserver/transmission:3.00-r5-ls123
     container_name: transmission
     environment:
-      - PUID=1009
-      - PGID=1009
+      - PUID=${CURRENT_PUID}
+      - PGID=${CURRENT_PGID}
       - TZ=Asia/Shanghai
       - TRANSMISSION_WEB_HOME=/combustion-release/
       - USER=admin
@@ -20,9 +20,8 @@ services:
     build:
       context: .
     image: smyyan/byrbt-bot-transmission
+    user: ${CURRENT_PUID}:${CURRENT_PGID}
     environment:
-      - PUID=1009
-      - PGID=1009
       - TZ=Asia/Shanghai
     volumes:
       - ./app/config:/config
