@@ -24,7 +24,7 @@ class BitTorrent:
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
             with open(filepath, 'rb') as f:
-                res = c.add_torrent(f, paused=paused)
+                res = c.add_torrent(f, paused=paused, timeout=(60, 120))
                 if res is None:
                     return None
                 time.sleep(1)  # wait 1s for torrent add to transmission
@@ -36,7 +36,7 @@ class BitTorrent:
     def download_from_content(self, content, paused=False):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            res = c.add_torrent(content, paused=paused)
+            res = c.add_torrent(content, paused=paused, timeout=(60, 120))
             if res is None:
                 return None
             time.sleep(1)  # wait 1s for torrent add to transmission
@@ -48,7 +48,7 @@ class BitTorrent:
     def remove(self, ids, delete_data=False):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            c.remove_torrent(ids, delete_data=delete_data)
+            c.remove_torrent(ids, delete_data=delete_data, timeout=(60, 120))
             return True
         except Exception as e:
             print(repr(e))
@@ -57,7 +57,7 @@ class BitTorrent:
     def start_torrent(self, ids):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            c.start_torrent(ids)
+            c.start_torrent(ids, timeout=(60, 120))
             return True
         except Exception as e:
             print(repr(e))
@@ -66,7 +66,7 @@ class BitTorrent:
     def get_list(self):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            return c.get_torrents()
+            return c.get_torrents(timeout=(60, 120))
         except Exception as e:
             print(repr(e))
             return None
@@ -74,7 +74,7 @@ class BitTorrent:
     def get_free_space(self):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            return c.free_space(self.download_path)
+            return c.free_space(self.download_path, timeout=(60, 120))
         except Exception as e:
             print(repr(e))
             return None
