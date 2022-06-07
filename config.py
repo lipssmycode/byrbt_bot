@@ -25,7 +25,7 @@ class ReadConfig:
         if filepath:
             config_path = filepath
         else:
-            config_path = "app/config/config.ini"
+            config_path = "config/config.ini"
 
         self.cf = configparser.ConfigParser()
         self.cf.read(config_path, encoding='utf8')

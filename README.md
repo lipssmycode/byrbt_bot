@@ -29,7 +29,7 @@ byrbt_bot包含以下功能：
 
 ## 配置
 
-bot配置文件路径在app/config/config.ini
+bot配置文件路径在config/config.ini
 
 ```ini
 [ByrBTBot]
@@ -57,7 +57,7 @@ transmission-download-path = /downloads	# transmission下载目录
 ### Docker Compose部署运行（推荐）
 
 1. 确保已经安装了[docker](https://www.docker.com/)和[docker-compose](https://docs.docker.com/compose/)，本人用的版本是docker 19.03.15以及docker-compose 1.29.2。
-2. 配置app/config/config.ini，只需要修改byrbt账户名称和密码，transmission相关配置如果修改了transmission的默认账户和密码就需要一同更改
+2. 配置config/config.ini，只需要修改byrbt账户名称和密码，transmission相关配置如果修改了transmission的默认账户和密码就需要一同更改
 3. 配置docker-compose.yml，可以修改transmission的下载目录以及账户密码，使用的transmission镜像的项目地址在[这里](https://hub.docker.com/r/linuxserver/transmission)
 
 ```yaml
@@ -87,15 +87,16 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ./app/config:/config
-      - ./app/data:/data
+      - ./config:/config
+      - ./data:/data
     depends_on:
       - transmission
     restart: unless-stopped
     network_mode: host
 ```
 
-4. 运行脚本start_bot_by_docker.sh即可
+4. 如果需要修改transmission本身的配置，可以修改transmission/data/settings.json文件
+5. 运行脚本start_bot_by_docker.sh即可
 
 ```
 # 在项目根目录下执行
@@ -108,7 +109,7 @@ export CURRENT_PGID=$(id -g)
 docker-compose up -d --build
 ```
 
-5. 启停byrbr-bot
+6. 启停byrbr-bot
 
 ```
 # 在项目根目录下执行
@@ -121,7 +122,7 @@ docker-compose stop
 
 ```
 
-6. 查看运行日志
+7. 查看运行日志
 
 ```
 # 在项目根目录下执行
@@ -133,13 +134,13 @@ docker-compose logs -f --tail=500 transmission
 docker-compose logs -f
 ```
 
-7. 卸载
+8. 卸载
 
 ```
 docker-compose down
 ```
 
-8. 如果要修改transmission配置文件，路径在./transmission/data/setting.json，修改完成后运行docker-compose restart即可
+9. 如果要修改transmission配置文件，路径在./transmission/data/setting.json，修改完成后运行docker-compose restart即可
 
 
 
@@ -167,7 +168,7 @@ docker-compose down
 }
 ```
 
-3. 配置app/config/config.ini，需要修改byrbt账户名称和密码，同时需要修改transmission配置
+3. 配置config/config.ini，需要修改byrbt账户名称和密码，同时需要修改transmission配置
 
 4. 安装Python依赖
 
@@ -175,7 +176,7 @@ docker-compose down
 pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 ```
 
-3. 启动byrbt-bot
+5. 启动byrbt-bot
 
 ```bash
 python3 bot.py
@@ -189,4 +190,3 @@ python3 bot.py
 
 **[byrbt_bot(https://github.com/Jason2031/byrbt_bot)](https://github.com/Jason2031/byrbt_bot)**  
 **[decaptcha(https://github.com/bumzy/decaptcha)](https://github.com/bumzy/decaptcha)**  
-

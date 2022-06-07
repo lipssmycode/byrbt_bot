@@ -24,8 +24,8 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ./app/config:/config
-      - ./app/data:/data
+      - ./config:/config
+      - ./data:/data
     depends_on:
       - transmission
     restart: unless-stopped

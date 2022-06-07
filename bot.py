@@ -442,7 +442,7 @@ class TorrentBot(ContextDecorator):
 
 
 if __name__ == '__main__':
-    config = ReadConfig(filepath='app/config/config.ini')
+    config = ReadConfig(filepath='config/config.ini')
     login = LoginTool(config)
     bit_torrent = BitTorrent(config)
     with TorrentBot(config, login, bit_torrent) as byrbt_bot:
