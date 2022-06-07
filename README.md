@@ -6,7 +6,8 @@
 
 > 目前byrbt_bot已经升级到2.0版本，代码进行了重构，同时添加了更多的功能，欢迎使用并提出建议，祝每个byrbter都能上传量4TB，账户永久保存！
 
-本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传134TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission作为下载器，可以从Web端查看种子下载情况。
+本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传133TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission
+作为下载器，可以从Web端查看种子下载情况。
 
 byrbt_bot包含以下功能：
 - [x] 支持自动识别验证码登录（感谢[**decaptcha**](https://github.com/bumzy/decaptcha)项目）
@@ -25,7 +26,7 @@ byrbt_bot包含以下功能：
 
 [图片-veteran user]
 
-平常手动下载免费种子并做种是一件较为繁琐的事情，使用本机器人可以利用校园里的服务器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快实现4TB上传量！
+平常手动下载免费种子并做种来提升等级是一件较为繁琐的事情，使用本机器人可以利用校园里的服务器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快更轻松的实现4TB上传量！
 
 ## 配置
 
@@ -158,8 +159,8 @@ docker-compose down
 {
 	...
     "download-dir": "/downloads/complete", # 下载文件夹路径设置
-    "download-queue-enabled": true, # 下载队列功能，建议直接关闭，或者将queue-size设置大一些
-    "download-queue-size": 5,
+    "download-queue-enabled": false, # 下载队列功能，建议直接关闭，或者将queue-size设置大一些
+    "download-queue-size": 50,
     "incomplete-dir": "/downloads/incomplete", # 未完成种子文件夹路径设置，未完成种子文件夹如不需要可以关闭
     "incomplete-dir-enabled": true,
     "preallocation": 1, # 预分配下载文件空间，必须设置为1，否则影响磁盘相关功能
