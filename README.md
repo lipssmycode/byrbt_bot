@@ -20,11 +20,19 @@ byrbt_bot包含以下功能：
 - [x] 支持磁盘剩余空间检测，磁盘空间少于5GB时启动清理种子文件
 - [x] 支持使用Transmission Web管理种子
 
+运行截图：
+
+![byrbt-bot.png](https://github.com/lipssmycode/byrbt_bot/blob/master/images/byrbt-bot.png)
+
+transmission 3.00 Web界面：
+
+![transmission.png](https://github.com/lipssmycode/byrbt_bot/blob/master/images/transmission.png)
+
 ## 背景
 
 北邮人BT只要上传量高于4TB，并且分享率大于3.05，就能成为**Veteran User**，账户永久保存！
 
-[图片-veteran user]
+![veteran-user.png](https://github.com/lipssmycode/byrbt_bot/blob/master/images/veteran-user.png)
 
 平常手动下载免费种子并做种来提升等级是一件较为繁琐的事情，使用本机器人可以利用校园里的服务器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快更轻松的实现4TB上传量！
 
