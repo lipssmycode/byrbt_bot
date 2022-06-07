@@ -6,7 +6,7 @@ numpy==1.21.4
 pillow==8.4.0
 scikit-learn==0.21.3
 requests==2.26.0
-lxml==4.6.4
+lxml==4.6.5
 scipy==1.7.2
 six==1.16.0
 transmission-rpc==3.3.0
