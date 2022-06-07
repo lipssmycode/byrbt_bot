@@ -1,0 +1,6 @@
+.idea
+
+*.log
+transmission/downloads
+transmission/watch
+__pycache__
