@@ -135,6 +135,7 @@ class TorrentBot(ContextDecorator):
             user_info_text = re.sub(" *: *", ':', user_info_text).strip()
             user_info_text = re.sub("\s+", ' ', user_info_text)
             user_info_text = "用户名:" + user_name + " " + user_info_text
+            print(user_info_text)
 
         except Exception as e:
             print("user info not found!")
@@ -370,7 +371,7 @@ class TorrentBot(ContextDecorator):
                 break
 
             try:
-                user_info_block = torrents_soup.select_one('#info_block > .bottom > .medium')
+                user_info_block = torrents_soup.select_one('#info_block').select_one('.bottom > .medium')
                 self.get_user_info(user_info_block)
             except Exception as e:
                 print('[ERROR] ' + repr(e))
