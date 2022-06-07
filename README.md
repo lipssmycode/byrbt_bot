@@ -165,7 +165,7 @@ docker-compose down
 
 ```json
 {
-	...
+    ...
     "download-dir": "/downloads/complete", # 下载文件夹路径设置
     "download-queue-enabled": false, # 下载队列功能，建议直接关闭，或者将queue-size设置大一些
     "download-queue-size": 50,
