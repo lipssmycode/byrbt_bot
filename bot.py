@@ -119,6 +119,27 @@ class TorrentBot(ContextDecorator):
         except KeyError:
             return ''
 
+    def get_user_info(self, user_info_block):
+        print("user info:")
+        try:
+            user_name = user_info_block.select_one('.nowrap').text
+            user_info_text = user_info_block.text
+            index_s = user_info_text.find('等级')
+            index_e = user_info_text.find('当前活动')
+            if index_s == -1 or index_e == -1:
+                print("[]")
+                return
+            user_info_text = user_info_text[index_s:index_e]
+            user_info_text = re.sub("[\xa0\n]", ' ', user_info_text)
+            user_info_text = re.sub("\[[^\[]*\]", '', user_info_text).replace('：', ':')
+            user_info_text = re.sub(" *: *", ':', user_info_text).strip()
+            user_info_text = re.sub("\s+", ' ', user_info_text)
+            user_info_text = "用户名:" + user_name + " " + user_info_text
+
+        except Exception as e:
+            print("user info not found!")
+            print('[ERROR] ' + repr(e))
+
     def get_torrent_info_filter_by_tag(self, table, filter_tags):
         assert isinstance(table, list)
         torrent_infos = list()
@@ -269,7 +290,7 @@ class TorrentBot(ContextDecorator):
                 flag = True
                 break
             except Exception as e:
-                print(repr(e))
+                print('[ERROR] ' + repr(e))
                 print('try login...')
                 self.byrbt_cookies = self.login.load_cookie()
                 if self.byrbt_cookies is not None:
@@ -337,7 +358,7 @@ class TorrentBot(ContextDecorator):
                     features="lxml")
                 flag = True
             except Exception as e:
-                print(repr(e))
+                print('[ERROR] ' + repr(e))
                 self.byrbt_cookies = self.login.load_cookie()
                 if self.byrbt_cookies is not None:
                     self.cookie_jar = RequestsCookieJar()
@@ -349,11 +370,17 @@ class TorrentBot(ContextDecorator):
                 break
 
             try:
+                user_info_block = torrents_soup.select_one('#info_block > .bottom > .medium')
+                self.get_user_info(user_info_block)
+            except Exception as e:
+                print('[ERROR] ' + repr(e))
+
+            try:
                 torrent_table = torrents_soup.select('.torrents > form > tr')[1:]
                 torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self._filter_tags)
                 flag = True
             except Exception as e:
-                print(repr(e))
+                print('[ERROR] ' + repr(e))
                 flag = False
 
             if flag is False:
@@ -373,6 +400,7 @@ class TorrentBot(ContextDecorator):
                     print('{} download fail'.format(torrent['title']))
                     continue
             time.sleep(scan_interval_in_sec)
+            print()
 
     def check_free_space_to_download(self, new_torrent_size):
         torrent_list = self.torrent_util.get_list()

@@ -30,7 +30,7 @@ class BitTorrent:
                 time.sleep(1)  # wait 1s for torrent add to transmission
                 return c.get_torrent(res.id)
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return None
 
     def download_from_content(self, content, paused=False):
@@ -42,7 +42,7 @@ class BitTorrent:
             time.sleep(1)  # wait 1s for torrent add to transmission
             return c.get_torrent(res.id)
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return None
 
     def remove(self, ids, delete_data=False):
@@ -51,7 +51,7 @@ class BitTorrent:
             c.remove_torrent(ids, delete_data=delete_data, timeout=(60, 120))
             return True
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return False
 
     def start_torrent(self, ids):
@@ -60,7 +60,7 @@ class BitTorrent:
             c.start_torrent(ids, timeout=(60, 120))
             return True
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return False
 
     def get_list(self):
@@ -68,7 +68,7 @@ class BitTorrent:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
             return c.get_torrents(timeout=(60, 120))
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return None
 
     def get_free_space(self):
@@ -76,7 +76,7 @@ class BitTorrent:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
             return c.free_space(self.download_path, timeout=(60, 120))
         except Exception as e:
-            print(repr(e))
+            print('[ERROR] ' + repr(e))
             return None
 
 
