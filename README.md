@@ -1,157 +1,192 @@
-# brybt_bot
+# byrbt_bot
+
+[![byrbt](https://img.shields.io/static/v1?label=ByrBt&message=2.0&color=blue)](https://github.com/lipssmycode/byrbt_bot) [![Python](https://img.shields.io/badge/python-3.7-plastic?logo=python&logoColor=#3776AB&link=https://www.python.org/)](https://www.python.org/) [![Transmission](https://img.shields.io/static/v1?label=Transmission&message=3.00&color=red)](https://transmissionbt.com/)
+
 **北邮人BT全自动（大概）下载~~刷流~~机器人**
 
-脚本很早以前写的，欢迎自行修改完善
+> 目前byrbt_bot已经升级到2.0版本，代码进行了重构，同时添加了更多的功能，欢迎使用并提出建议，祝每个byrbter都能上传量4TB，账户永久保存！
 
-北邮人BT只要上传量高于4TB，并且分享率大于3.05，就能成为**Veteran User**，账户永久保存
+本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传134TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission作为下载器，可以从Web端查看种子下载情况。
 
-![image-20200330161046856](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330161046856.png)
-
-本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传96TB），采用transmission作为下载器，可以从Web端查看种子下载情况
-
-![image-20200330163255569](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330163255569.png)
-
-（疫情期间，免费种子较少）
-
-![image-20200330163105285](https://github.com/lipssmycode/byrbt_bot/blob/master/images/image-20200330163105285.png)
-
-- [x] 支持识别验证码登录（感谢**[decaptcha](https://github.com/bumzy/decaptcha)**项目）
-- [x] 支持下载种子(感谢**[byrbt_bot](https://github.com/Jason2031/byrbt_bot)**项目)
-- [x] 支持自动寻找合适的免费种子（默认条件：种子文件大于1G小于1TB大小，下载人数比做种人数大于0.6）
-- [x] 支持识别Free，提高下载种子的条件，择优选取，避免频繁更换下载种子
-- [x] 支持自动删除旧种子，下载新种子
+byrbt_bot包含以下功能：
+- [x] 支持自动识别验证码登录（感谢[**decaptcha**](https://github.com/bumzy/decaptcha)项目）
+- [x] 支持自动下载种子(感谢[**byrbt_bot**](https://github.com/Jason2031/byrbt_bot)项目)
+- [x] 支持自动寻找合适的免费种子进行下载并做种（默认条件：种子文件大于1GB小于1TB大小，下载人数比做种人数大于0.6）
+- [x] 支持自动识别Free活动，提高下载种子的条件，择优选取，避免频繁更换下载种子（默认条件：种子文件大于20GB小于1TB大小，下载人数比做种人数大于20.0）
+- [x] 支持自动队列管理，设置队列上限，达到队列上限按照一定策略删除旧种子
+- [x] 支持磁盘空间管理，可以设置种子文件大小总量上限
+- [x] 支持过滤种子文件大小，范围在1G-1024G
+- [x] 支持磁盘剩余空间检测，磁盘空间少于5GB时启动清理种子文件
 - [x] 支持使用Transmission Web管理种子
 
-### Usage
+## 背景
 
-1. #### 用户权限问题
+北邮人BT只要上传量高于4TB，并且分享率大于3.05，就能成为**Veteran User**，账户永久保存！
 
-   由于需要使用Transmission，在root用户下配置会比较方便，一般用户可以采用docker实现，将下载数据的文件夹挂载到docker上即可。
+[图片-veteran user]
 
-2. #### 安装Python3
+平常手动下载免费种子并做种是一件较为繁琐的事情，使用本机器人可以利用校园里的服务器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快实现4TB上传量！
 
-   安装相应依赖包
+## 配置
 
-   ```shell
-   pip install -r requirements.txt
-   ```
-   sklearn版本为0.22.1可以使用captcha_classifier_sklearn0.22.1.pkl模型，改名为captcha_classifier.pkl即可
+bot配置文件路径在app/config/config.ini
 
-3. #### 安装Transmission
+```ini
+[ByrBTBot]
+byrbt-url = https://byr.pt/				# byrbt网址，默认不用修改
+username = <please input your username>	# byrbt账户名
+passwd = <please input your passwd>		# byrbt账户密码
+max-torrent = 20						# 种子队列上限
+;all size in G
+max-torrent-total-size = 1024			# 种子大小总量上限（单位G）
+torrent-max-size = 512					# 单种子大小上限（单位G）
+torrent-min-size = 1					# 单种子大小下限（单位G）
 
-   安装Transmission教程如下
+[Transmission]
+transmission-host = 127.0.0.1			# transmission所在服务器地址
+transmission-port = 9091				# transmission rpc端口
+transmission-username = admin			# transmission账户名
+transmission-password = admin			# transmission账户密码
+transmission-download-path = /downloads	# transmission下载目录
+```
 
-   https://www.jianshu.com/p/bbd4f6832268?nomobile=yes
+**注意！！！**本机器人会自动删除种子，因此最好重新部署新的transmission服务，而不要将原本的transmission接入到本机器上，以防重要种子被删除！
 
-   https://blog.csdn.net/jiyuanyi1992/article/details/44250943
+## 部署及运行
 
-   https://blog.csdn.net/zhaiyingchen/article/details/88049113
+### Docker Compose部署运行（推荐）
 
-   [https://wiki.archlinux.org/index.php/Transmission_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#%E9%80%89%E6%8B%A9%E4%B8%80%E4%B8%AA%E7%94%A8%E6%88%B7](https://wiki.archlinux.org/index.php/Transmission_(简体中文)#选择一个用户)
+1. 确保已经安装了[docker](https://www.docker.com/)和[docker-compose](https://docs.docker.com/compose/)，本人用的版本是docker 19.03.15以及docker-compose 1.29.2。
+2. 配置app/config/config.ini，只需要修改byrbt账户名称和密码，transmission相关配置如果修改了transmission的默认账户和密码就需要一同更改
+3. 配置docker-compose.yml，可以修改transmission的下载目录以及账户密码，使用的transmission镜像的项目地址在[这里](https://hub.docker.com/r/linuxserver/transmission)
 
-   启动配置一般在~/.config/transmission-daemon/settings.json，这里放一个可行的配置
+```yaml
+version: "3"
+services:
+  transmission:
+    image: linuxserver/transmission:3.00-r5-ls123
+    container_name: transmission
+    environment:
+      - PUID=${CURRENT_PUID} # 当前用户的UID
+      - PGID=${CURRENT_PGID} # 当前用户的GID
+      - TZ=Asia/Shanghai
+      - TRANSMISSION_WEB_HOME=/combustion-release/
+      - USER=admin # transmission的访问账户名
+      - PASS=admin # transmission的访问密码
+    volumes:
+      - ./transmission/data:/config			# ./transmission/data包含transmission的配置文件，可启动后自行修改
+      - ./transmission/downloads:/downloads # ./transmission/downloads是transmission的下载目录，可以自行替换，注意需要当前用户有读写权限
+      - ./transmission/watch:/watch
+    restart: unless-stopped
+    network_mode: host
+  bot:
+    build:
+      context: .
+    image: smyyan/byrbt-bot-transmission
+    user: ${CURRENT_PUID}:${CURRENT_PGID} # 设置容器运行用户为当前用户
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./app/config:/config
+      - ./app/data:/data
+    depends_on:
+      - transmission
+    restart: unless-stopped
+    network_mode: host
+```
 
-   ```json
-   {
-       "alt-speed-down": 50,
-       "alt-speed-enabled": false,
-       "alt-speed-time-begin": 540,
-       "alt-speed-time-day": 127,
-       "alt-speed-time-enabled": false,
-       "alt-speed-time-end": 1020,
-       "alt-speed-up": 50,
-       "bind-address-ipv4": "0.0.0.0",  //修改
-       "bind-address-ipv6": "::", //修改
-       "blocklist-enabled": false,//修改
-       "blocklist-url": "http://www.example.com/blocklist",
-       "cache-size-mb": 4,
-       "dht-enabled": true,
-       "download-dir": "/home/.bt", //修改为种子文件下载路径（需新建一个空文件夹）
-       "download-queue-enabled": true,
-       "download-queue-size": 5,
-       "encryption": 1,
-       "idle-seeding-limit": 30,
-       "idle-seeding-limit-enabled": false,
-       "incomplete-dir": "/home/.bt", //修改为种子文件下载路径（需新建一个空文件夹）
-       "incomplete-dir-enabled": false,
-       "lpd-enabled": false,
-       "message-level": 1,
-       "peer-congestion-algorithm": "",
-       "peer-id-ttl-hours": 6,
-       "peer-limit-global": 200,
-       "peer-limit-per-torrent": 50,
-       "peer-port": 51413,
-       "peer-port-random-high": 65535,
-       "peer-port-random-low": 49152,
-       "peer-port-random-on-start": false,
-       "peer-socket-tos": "default",
-       "pex-enabled": true,
-       "port-forwarding-enabled": true,
-       "preallocation": 1,
-       "prefetch-enabled": 1,
-       "queue-stalled-enabled": true,
-       "queue-stalled-minutes": 30,
-       "ratio-limit": 2,
-       "ratio-limit-enabled": false,
-       "rename-partial-files": true,
-       "rpc-authentication-required": true,//修改
-       "rpc-bind-address": "0.0.0.0", //修改
-       "rpc-enabled": true, //修改
-       "rpc-host-whitelist": "",//修改
-       "rpc-host-whitelist-enabled": true,//修改
-       "rpc-password": "pw",//密码
-       "rpc-port": 9091,//web访问端口
-       "rpc-url": "/transmission/",//修改
-       "rpc-username": "smy", //用户
-       "rpc-whitelist": "*.*.*.*",//修改
-       "rpc-whitelist-enabled": true,//修改
-       "scrape-paused-torrents-enabled": true,
-       "script-torrent-done-enabled": false,
-       "script-torrent-done-filename": "",
-       "seed-queue-enabled": false,
-       "seed-queue-size": 10,
-       "speed-limit-down": 100,
-       "speed-limit-down-enabled": false,
-       "speed-limit-up": 100,
-       "speed-limit-up-enabled": false,
-       "start-added-torrents": true,
-       "trash-original-torrent-files": false,
-       "umask": 18,
-       "upload-slots-per-torrent": 14,
-       "utp-enabled": true
-   }
-   ```
+4. 运行脚本start_bot_by_docker.sh即可
 
-   启动不成功可以在保证service transmission-daemon是关闭的情况下运行
+```
+# 在项目根目录下执行
+# docker-compose启动byrbt-bot
+bash start_bot_by_docker.sh
 
-   ```shell
-   transmission-daemon -g <配置所在的文件夹路径>
-   ```
+# 或者手动执行
+export CURRENT_PUID=$(id -u)
+export CURRENT_PGID=$(id -g)
+docker-compose up -d --build
+```
 
-   访问ip:9091登录web端，出现红种需自行删除，尚未解决自动删除红种的问题
+5. 启停byrbr-bot
 
-4. #### 在byrbt.py配置信息
+```
+# 在项目根目录下执行
+# 停止byrbr-bot
+docker-compose stop bot
+# 停止transmission
+docker-compose stop transmission
+# 停止所有
+docker-compose stop
 
-   主要配置如下信息
+```
 
-   ```python
-   _username = '用户名'
-   _passwd = '密码'
-   _transmission_user_pw = 'user:passwd'  # transmission的用户名和密码，按照格式填入
-   _windows_download_path = './torrent'  # windows测试下载种子路径
-   _linux_download_path = '<path_to_download_dir>'  # linux服务器下载种子的路径
-   _torrent_infos = './torrent.pkl'  # 种子信息保存文件路径
-   max_torrent = 20  # 最大种子数
-   search_time = 120  # 轮询种子时间，默认120秒
-   ```
+6. 查看运行日志
 
-5. #### 启动
+```
+# 在项目根目录下执行
+# 查看byrbr-bot日志
+docker-compose logs -f --tail=500 bot
+# 查看transmission日志
+docker-compose logs -f --tail=500 transmission
+# 查看日志
+docker-compose logs -f
+```
 
-   ```shell
-   python byrbt.py
-   ```
+7. 卸载
 
-### Acknowledgements
+```
+docker-compose down
+```
 
-**[byrbt_bot](https://github.com/Jason2031/byrbt_bot)**  
-**[decaptcha](https://github.com/bumzy/decaptcha)**  
+8. 如果要修改transmission配置文件，路径在./transmission/data/setting.json，修改完成后运行docker-compose restart即可
+
+
+
+### 手动部署运行
+
+1. 确保安装transmission 3.00或者2.00以上版本，确保安装Python3.7以上版本
+
+2. 配置transmission并运行transmission
+
+   注意：尽量不要使用原有的transmission，因为本机器人会删除种子，如果原有的transmission有重要的种子数据，会导致数据丢失！
+
+   以下是transmission部分配置说明，其他配置按自身需求设置，[配置文件地址](https://github.com/linuxserver/docker-transmission/blob/master/root/defaults/settings.json)
+
+```json
+{
+	...
+    "download-dir": "/downloads/complete", # 下载文件夹路径设置
+    "download-queue-enabled": true, # 下载队列功能，建议直接关闭，或者将queue-size设置大一些
+    "download-queue-size": 5,
+    "incomplete-dir": "/downloads/incomplete", # 未完成种子文件夹路径设置，未完成种子文件夹如不需要可以关闭
+    "incomplete-dir-enabled": true,
+    "preallocation": 1, # 预分配下载文件空间，必须设置为1，否则影响磁盘相关功能
+    "rpc-enabled": true, # rpc功能必须开启
+    ...
+}
+```
+
+3. 配置app/config/config.ini，需要修改byrbt账户名称和密码，同时需要修改transmission配置
+
+4. 安装Python依赖
+
+```bash
+pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
+```
+
+3. 启动byrbt-bot
+
+```bash
+python3 bot.py
+```
+
+## 维护者
+
+[@lipssmycode](https://github.com/lipssmycode)
+
+## 感谢
+
+**[byrbt_bot(https://github.com/Jason2031/byrbt_bot)](https://github.com/Jason2031/byrbt_bot)**  
+**[decaptcha(https://github.com/bumzy/decaptcha)](https://github.com/bumzy/decaptcha)**  
+

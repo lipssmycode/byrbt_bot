@@ -51,13 +51,20 @@ class TorrentBot(ContextDecorator):
             self.max_torrent_total_size = 0
         self.max_torrent_total_size = self.max_torrent_total_size * 1024 * 1024 * 1024
         self.torrent_max_size = int(config.get_bot_config("torrent-max-size"))
-        if self.torrent_max_size is None:
+        if self.torrent_max_size is None or self.torrent_max_size > 1024:
+            print("torrent-max-size wrong setting, Use default setting: torrent-max-size: 1024G")
             self.torrent_max_size = 1024
         self.torrent_max_size = self.torrent_max_size * 1024 * 1024 * 1024
         self.torrent_min_size = int(config.get_bot_config("torrent-min-size"))
         if self.torrent_min_size is None or self.torrent_min_size < 1:
+            print("torrent-min-size wrong setting, Use default setting: torrent-min-size: 1G")
             self.torrent_min_size = 1
         self.torrent_min_size = self.torrent_min_size * 1024 * 1024 * 1024
+        if self.torrent_min_size > self.torrent_max_size:
+            print("torrent-min-size is greater than torrent-max-size, please check config.ini! Use default setting: "
+                  "torrent-max-size: 1024G, torrent-min-size: 1G")
+            self.torrent_max_size = 1024 * 1024 * 1024 * 1024
+            self.torrent_min_size = 1 * 1024 * 1024 * 1024
 
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
