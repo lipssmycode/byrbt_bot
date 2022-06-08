@@ -417,7 +417,8 @@ class TorrentBot(ContextDecorator):
             sum_size += torrent.total_size
         if sum_size + free_space <= new_torrent_size:
             return False
-
+        
+        print('insufficient disk space, try to remove some torrent...')
         torrent_list.sort(key=lambda x: (x.date_added, x.rateUpload))
         while free_space <= new_torrent_size and len(torrent_list) > 0:
             remove_torrent_info = torrent_list.pop(0)
