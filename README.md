@@ -6,8 +6,7 @@
 
 > 目前byrbt_bot已经升级到2.0版本，代码进行了重构，同时添加了更多的功能，欢迎使用并提出建议，祝每个byrbter都能上传量4TB，账户永久保存！
 
-本机器人可以利用校园里的服务器进行全自动做种（本人亲测已上传133TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission
-作为下载器，可以从Web端查看种子下载情况。
+本机器人可以利用校园里的主机、树莓派、服务器等机器进行全自动做种（本人亲测已上传133TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission作为下载器，可以从Web端查看种子下载情况。
 
 byrbt_bot包含以下功能：
 - [x] 支持自动识别验证码登录（感谢[**decaptcha**](https://github.com/bumzy/decaptcha)项目）
@@ -34,7 +33,7 @@ transmission 3.00 Web界面：
 
 ![veteran-user.png](https://github.com/lipssmycode/byrbt_bot/blob/master/image/veteran-user.png)
 
-平常手动下载免费种子并做种来提升等级是一件较为繁琐的事情，使用本机器人可以利用校园里的服务器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快更轻松的实现4TB上传量！
+平常手动下载免费种子并做种来提升等级是一件较为繁琐的事情，使用本机器人可以利用校园里的主机、树莓派、服务器等机器进行全自动(~~刷流~~)做种，可以省去挑选种子和管理种子的麻烦，更快更轻松的实现4TB上传量！
 
 ## 配置
 
@@ -59,7 +58,7 @@ transmission-password = admin			# transmission账户密码
 transmission-download-path = /downloads	# transmission下载目录
 ```
 
-**注意！！！**本机器人会自动删除种子，因此最好重新部署新的transmission服务，而不要将原本的transmission接入到本机器上，以防重要种子被删除！
+**注意！！！** 本机器人会自动删除种子，因此最好重新部署新的transmission服务，而不要将原本的transmission直接接入bot，以防重要种子被删除！
 
 ## 部署及运行
 
@@ -115,6 +114,7 @@ bash start_bot_by_docker.sh
 # 或者手动执行
 export CURRENT_PUID=$(id -u)
 export CURRENT_PGID=$(id -g)
+mkdir -p ./transmission/data ./transmission/downloads ./transmission/watch ./config ./data
 docker-compose up -d --build
 ```
 
@@ -146,6 +146,9 @@ docker-compose logs -f
 8. 卸载
 
 ```
+# 在项目根目录下执行
+export CURRENT_PUID=$(id -u)
+export CURRENT_PGID=$(id -g)
 docker-compose down
 ```
 
