@@ -41,21 +41,21 @@ bot配置文件路径在config/config.ini
 
 ```ini
 [ByrBTBot]
-byrbt-url = https://byr.pt/				# byrbt网址，默认不用修改
-username = <please input your username>	# byrbt账户名
-passwd = <please input your passwd>		# byrbt账户密码
-max-torrent = 20						# 种子队列上限
+byrbt-url = https://byr.pt               # byrbt网址，默认不用修改
+username = <please input your username>  # byrbt账户名
+passwd = <please input your passwd>      # byrbt账户密码
+max-torrent = 20                         # 种子队列上限
 ;all size in G
-max-torrent-total-size = 1024			# 种子大小总量上限（单位G）
-torrent-max-size = 512					# 单种子大小上限（单位G）
-torrent-min-size = 1					# 单种子大小下限（单位G）
+max-torrent-total-size = 1024   # 种子大小总量上限（单位G）
+torrent-max-size = 512          # 单种子大小上限（单位G）
+torrent-min-size = 1            # 单种子大小下限（单位G）
 
 [Transmission]
-transmission-host = 127.0.0.1			# transmission所在服务器地址
-transmission-port = 9091				# transmission rpc端口
-transmission-username = admin			# transmission账户名
-transmission-password = admin			# transmission账户密码
-transmission-download-path = /downloads	# transmission下载目录
+transmission-host = 127.0.0.1            # transmission所在服务器地址
+transmission-port = 9091                 # transmission rpc端口
+transmission-username = admin            # transmission账户名
+transmission-password = admin            # transmission账户密码
+transmission-download-path = /downloads  # transmission下载目录
 ```
 
 **注意！！！** 本机器人会自动删除种子，因此最好重新部署新的transmission服务，而不要将原本的transmission直接接入bot，以防重要种子被删除！
