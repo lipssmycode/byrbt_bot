@@ -2,7 +2,7 @@
 
 [![byrbt](https://img.shields.io/static/v1?label=ByrBt&message=2.0&color=blue)](https://github.com/lipssmycode/byrbt_bot) [![Python](https://img.shields.io/badge/python-3.7-plastic?logo=python&logoColor=#3776AB&link=https://www.python.org/)](https://www.python.org/) [![Transmission](https://img.shields.io/static/v1?label=Transmission&message=3.00&color=red)](https://transmissionbt.com/)
 
-**北邮人BT全自动（大概）下载~~刷流~~机器人**
+**北邮人BT全自动~~刷流~~下载做种机器人**
 
 > 目前byrbt_bot已经升级到2.0版本，代码进行了重构，同时添加了更多的功能，欢迎使用并提出建议，祝每个byrbter都能上传量4TB，账户永久保存！
 
