@@ -103,7 +103,7 @@ services:
     network_mode: host
 ```
 
-4. 如果需要修改transmission本身的配置，可以修改transmission/data/settings.json文件
+4. 如果需要修改transmission本身的配置，可以修改./transmission/data/settings.json文件，transmission的docker容器会读取该文件进行配置
 5. 运行脚本start_bot_by_docker.sh即可
 
 ```
@@ -152,7 +152,7 @@ export CURRENT_PGID=$(id -g)
 docker-compose down
 ```
 
-9. 如果要修改transmission配置文件，路径在./transmission/data/setting.json，修改完成后运行docker-compose restart即可
+9. 如果要在运行后修改transmission配置或者bot配置，只需要在修改完成配置文件后运行docker-compose restart即可
 
 
 
