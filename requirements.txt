@@ -1,4 +1,4 @@
-# python==3.7.12
+# python==3.7.9
 # pip==21.3.1
 #
 # if scikit-learn can not be installed, you can add the following package
