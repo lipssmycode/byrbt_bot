@@ -185,6 +185,7 @@ docker-compose down
 4. 安装Python依赖
 
 ```bash
+# 如果scikit-learn安装不上的话，把Cpython添加进requirements.txt
 pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 ```
 
