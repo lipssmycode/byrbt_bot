@@ -1,7 +1,7 @@
 # python==3.7.12
 # pip==21.3.1
 #
-# scikit-learn安装不上可以添加下面这条
+# if scikit-learn can not be installed, you can add the following package
 # Cython
 
 beautifulsoup4==4.10.0
