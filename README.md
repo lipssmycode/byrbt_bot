@@ -82,7 +82,7 @@ services:
       - USER=admin # transmission的访问账户名
       - PASS=admin # transmission的访问密码
     volumes:
-      - ./transmission/data:/config			# ./transmission/data包含transmission的配置文件，可启动后自行修改
+      - ./transmission/data:/config         # ./transmission/data包含transmission的配置文件，可启动后自行修改
       - ./transmission/downloads:/downloads # ./transmission/downloads是transmission的下载目录，可以自行替换，注意需要当前用户有读写权限
       - ./transmission/watch:/watch
     restart: unless-stopped
