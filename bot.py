@@ -415,12 +415,14 @@ class TorrentBot(ContextDecorator):
         sum_size = 0
         for torrent in torrent_list:
             sum_size += torrent.total_size
-        if sum_size + free_space <= new_torrent_size:
-            return False
-        
+
+        if new_torrent_size < free_space and sum_size + new_torrent_size <= self.max_torrent_total_size:
+            return True
+
         print('insufficient disk space, try to remove some torrent...')
         torrent_list.sort(key=lambda x: (x.date_added, x.rateUpload))
-        while free_space <= new_torrent_size and len(torrent_list) > 0:
+        while (free_space <= new_torrent_size or sum_size + new_torrent_size > self.max_torrent_total_size) \
+                and len(torrent_list) > 0:
             remove_torrent_info = torrent_list.pop(0)
             if remove_torrent_info.status.checking:
                 continue
@@ -435,8 +437,9 @@ class TorrentBot(ContextDecorator):
                 print('remove torrent fail: ' + str(remove_torrent_info))
                 return None
             free_space += remove_torrent_info.total_size
+            sum_size -= remove_torrent_info.total_size
 
-        return self.torrent_util.get_free_space() > new_torrent_size
+        return self.torrent_util.get_free_space() > new_torrent_size and sum_size + new_torrent_size <= self.max_torrent_total_size
 
     def check_disk_space(self):
         free_space = self.torrent_util.get_free_space()
