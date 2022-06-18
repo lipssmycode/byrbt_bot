@@ -76,6 +76,12 @@ class TorrentBot(ContextDecorator):
             'halfdown': '50%下载',
             'twouphalfdown': '50%下载&2x上传',
             'thirtypercent': '30%下载',
+            # 添加图标方式
+            '2up': '2x上传',
+            'free2up': '免费&2x上传',
+            '50pctdown': '50%下载',
+            '50pctdown2up': '50%下载&2x上传',
+            '30pctdown': '30%下载',
         }
         self._cat_map = {
             '电影': 'movie',
@@ -180,8 +186,17 @@ class TorrentBot(ContextDecorator):
                 is_recommended = True
                 tags.remove('recommended')
 
+            # 根据控制面板中促销种子的标记方式不同来匹配
             if 'class' in tds[1].select('table > tr')[0].attrs.keys():
+                # 默认高亮方式
                 tag = self._get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
+            elif len(tags) == 1:
+                # 文字标记方式
+                # 不属于 hot、new、recommended 的标记即为促销标记
+                tag = self._get_tag(list(tags)[0])
+            elif len(main_td.select('img[src="pic/trans.gif"][class^="pro_"]')) > 0:
+                # 添加图标方式
+                tag = self._get_tag(main_td.select('img[src="pic/trans.gif"][class^="pro_"]')[-1].attrs['class'][0].split('_')[-1])
             else:
                 tag = ''
 
