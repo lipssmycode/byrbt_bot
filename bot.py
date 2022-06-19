@@ -70,13 +70,14 @@ class TorrentBot(ContextDecorator):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
         self._filter_tags = ['免费', '免费&2x上传']
         self._tag_map = {
+            # highlight & tag
             'free': '免费',
             'twoup': '2x上传',
             'twoupfree': '免费&2x上传',
             'halfdown': '50%下载',
             'twouphalfdown': '50%下载&2x上传',
             'thirtypercent': '30%下载',
-            # 添加图标方式
+            # icon
             '2up': '2x上传',
             'free2up': '免费&2x上传',
             '50pctdown': '50%下载',
