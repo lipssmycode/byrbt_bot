@@ -60,7 +60,7 @@ transmission-download-path = /downloads  # transmission下载目录
 
 **注意！！！** 本机器人会自动删除种子，因此最好重新部署新的transmission服务，而不要将原本的transmission直接接入bot，以防重要种子被删除！
 
-北邮人BT-控制面板-网站设定-种子页面-促销种子设定下至少需要选择一个标记方式！
+**注意** 北邮人BT-控制面板-网站设定-种子页面-促销种子设定下至少需要选择一个标记方式！
 
 ## 部署及运行
 
