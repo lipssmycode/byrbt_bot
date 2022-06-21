@@ -160,7 +160,7 @@ docker-compose down
 
 ### 手动部署运行
 
-1. 确保安装transmission 3.00或者2.00以上版本，确保安装Python3.7以上版本
+1. 确保安装transmission 3.00或者2.00以上版本，确保安装Python3.7版本（推荐anaconda/miniconda开一个新环境安装，高于3.7版本可能会导致sklearn无法安装）
 
 2. 配置transmission并运行transmission
 
