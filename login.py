@@ -52,8 +52,7 @@ class LoginTool:
             login_content = session.get(self.login_url)
             login_soup = BeautifulSoup(login_content.text, 'lxml')
 
-            img_url = self.base_url + login_soup.select('#nav_block > form > table > tr:nth-of-type(3) img')[0].attrs[
-                'src']
+            img_url = self.base_url + login_soup.select('tr:nth-child(3) > td:nth-child(2) > img')[0].attrs['src']
             img_file = Image.open(BytesIO(session.get(img_url).content))
 
             captcha_text = decaptcha.decode(img_file)
