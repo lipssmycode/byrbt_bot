@@ -154,8 +154,8 @@ class TorrentBot(ContextDecorator):
         for item in table:
             torrent_info = dict()
             tds = item.select('td')
-            cat = tds[0].select('a')[0].attrs['title']
-            main_td = tds[2].select('table > tr > td')[0]
+            cat = tds[0].find('img').attrs['title']
+            main_td = tds[1].select('table > tr > td')[0]
             href = main_td.select('a')[0].attrs['href']
             seed_id = re.findall(r'id=(\d+)&', href)[0]
             title = main_td.text
@@ -188,9 +188,9 @@ class TorrentBot(ContextDecorator):
                 tags.remove('recommended')
 
             # 根据控制面板中促销种子的标记方式不同来匹配
-            if 'class' in tds[2].select('table > tr')[0].attrs.keys():
+            if 'class' in tds[1].select('table > tr')[0].attrs.keys():
                 # 默认高亮方式
-                tag = self._get_tag(tds[2].select('table > tr')[0].attrs['class'][0])
+                tag = self._get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
             elif len(tags) == 1:
                 # 文字标记方式
                 # 不属于 hot、new、recommended 的标记即为促销标记
@@ -201,13 +201,13 @@ class TorrentBot(ContextDecorator):
             else:
                 tag = ''
 
-            file_size = tds[7].text.split('\n')
+            file_size = tds[6].text.split('\n')
 
-            seeding = int(tds[8].text) if tds[8].text.isdigit() else -1
+            seeding = int(tds[7].text) if tds[7].text.isdigit() else -1
 
-            downloading = int(tds[9].text) if tds[9].text.isdigit() else -1
+            downloading = int(tds[8].text) if tds[8].text.isdigit() else -1
 
-            finished = int(tds[10].text) if tds[10].text.isdigit() else -1
+            finished = int(tds[9].text) if tds[9].text.isdigit() else -1
 
             torrent_info['cat'] = cat
             torrent_info['is_hot'] = is_hot
