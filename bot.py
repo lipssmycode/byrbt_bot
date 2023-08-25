@@ -76,7 +76,7 @@ class TorrentBot(ContextDecorator):
             'twoupfree': '免费&2x上传',
             'halfdown': '50%下载',
             'twouphalfdown': '50%下载&2x上传',
-            'thirtypercent': '30%下载',
+            'thirtypercentdown': '30%下载',
             # icon
             '2up': '2x上传',
             'free2up': '免费&2x上传',
@@ -153,26 +153,32 @@ class TorrentBot(ContextDecorator):
         torrent_infos = list()
         for item in table:
             torrent_info = dict()
-            tds = item.select('td')
-            cat = tds[0].find('img').attrs['title']
-            main_td = tds[1].select('table > tr > td')[0]
-            href = main_td.select('a')[0].attrs['href']
-            seed_id = re.findall(r'id=(\d+)&', href)[0]
-            title = main_td.text
-            title = title.split('\n')
-            if len(title) == 2:
-                sub_title = title[1]
-                title = title[0]
-            else:
-                sub_title = ''
-                title = title[0]
+            tds = item.find_all('td', recursive=False)
+            # tds[0] 是 引用
 
-            tags = set([font.attrs['class'][0] for font in main_td.select('b > font') if 'class' in font.attrs.keys()])
+            # tds[1] 是分类
+            cat = tds[1].find('a').text.strip()
+            
+            # 主要信息的td
+            main_td = tds[2].select('table > tr > td')[0]
+            if main_td.find('div'):
+                main_td = tds[2].select('table > tr > td')[1]
+            
+            # 链接
+            href = main_td.select('a')[0].attrs['href']
+
+            # 种子id
+            seed_id = re.findall(r'id=(\d+)', href)[0]
+
+            # 标题
+            title = main_td.find('a').attrs['title']
+
+            tags = set([font.attrs['class'][0] for font in main_td.select('span > span') if 'class' in font.attrs.keys()])
             if '' in tags:
                 tags.remove('')
 
-            is_seeding = len(main_td.select('img[src="pic/seeding.png"]')) > 0
-            is_finished = len(main_td.select('img[src="pic/finished.png"]')) > 0
+            is_seeding = len(main_td.select('img[src="/pic/seeding.png"]')) > 0
+            is_finished = len(main_td.select('img[src="/pic/finished.png"]')) > 0
 
             is_hot = False
             if 'hot' in tags:
@@ -188,26 +194,26 @@ class TorrentBot(ContextDecorator):
                 tags.remove('recommended')
 
             # 根据控制面板中促销种子的标记方式不同来匹配
-            if 'class' in tds[1].select('table > tr')[0].attrs.keys():
+            if 'class' in item.attrs:
                 # 默认高亮方式
-                tag = self._get_tag(tds[1].select('table > tr')[0].attrs['class'][0])
+                tag = self._get_tag(item.attrs['class'][0])
             elif len(tags) == 1:
                 # 文字标记方式
                 # 不属于 hot、new、recommended 的标记即为促销标记
                 tag = self._get_tag(list(tags)[0])
-            elif len(main_td.select('img[src="pic/trans.gif"][class^="pro_"]')) > 0:
+            elif len(main_td.select('img[src="/pic/trans.gif"][class^="pro_"]')) > 0:
                 # 添加图标方式
-                tag = self._get_tag(main_td.select('img[src="pic/trans.gif"][class^="pro_"]')[-1].attrs['class'][0].split('_')[-1])
+                tag = self._get_tag(main_td.select('img[src="/pic/trans.gif"][class^="pro_"]')[-1].attrs['class'][0].split('_')[-1])
             else:
                 tag = ''
 
-            file_size = tds[6].text.split('\n')
+            file_size = tds[5].text.split('\n')
 
-            seeding = int(tds[7].text) if tds[7].text.isdigit() else -1
+            seeding = int(tds[6].text) if tds[6].text.isdigit() else -1
 
-            downloading = int(tds[8].text) if tds[8].text.isdigit() else -1
+            downloading = int(tds[7].text) if tds[7].text.isdigit() else -1
 
-            finished = int(tds[9].text) if tds[9].text.isdigit() else -1
+            finished = int(tds[8].text) if tds[8].text.isdigit() else -1
 
             torrent_info['cat'] = cat
             torrent_info['is_hot'] = is_hot
@@ -216,7 +222,6 @@ class TorrentBot(ContextDecorator):
             torrent_info['is_finished'] = is_finished
             torrent_info['seed_id'] = seed_id
             torrent_info['title'] = title
-            torrent_info['sub_title'] = sub_title
             torrent_info['seeding'] = seeding
             torrent_info['downloading'] = downloading
             torrent_info['finished'] = finished
@@ -261,7 +266,7 @@ class TorrentBot(ContextDecorator):
                 if torrent_info['seed_id'] in self.old_torrent:
                     continue
                 # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GB' not in torrent_info['file_size'][0]:
+                if 'GiB' not in torrent_info['file_size'][0]:
                     continue
                 if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
                     continue
