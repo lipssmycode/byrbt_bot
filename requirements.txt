@@ -6,7 +6,7 @@
 
 beautifulsoup4==4.10.0
 numpy==1.21.4
-pillow==8.4.0
+pillow==9.3.0
 scikit-learn==0.21.3
 requests==2.26.0
 lxml==4.6.4
