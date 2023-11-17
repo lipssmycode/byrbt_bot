@@ -157,13 +157,13 @@ class TorrentBot(ContextDecorator):
             # tds[0] 是 引用
 
             # tds[1] 是分类
-            cat = tds[1].find('a').text.strip()
-            
+            cat = tds[0].find('a').text.strip()
+
             # 主要信息的td
-            main_td = tds[2].select('table > tr > td')[0]
+            main_td = tds[1].select('table > tr > td')[0]
             if main_td.find('div'):
-                main_td = tds[2].select('table > tr > td')[1]
-            
+                main_td = tds[1].select('table > tr > td')[1]
+
             # 链接
             href = main_td.select('a')[0].attrs['href']
 
@@ -207,13 +207,13 @@ class TorrentBot(ContextDecorator):
             else:
                 tag = ''
 
-            file_size = tds[5].text.split('\n')
+            file_size = tds[4].text.split('\n')
 
-            seeding = int(tds[6].text) if tds[6].text.isdigit() else -1
+            seeding = int(tds[5].text) if tds[5].text.isdigit() else -1
 
-            downloading = int(tds[7].text) if tds[7].text.isdigit() else -1
+            downloading = int(tds[6].text) if tds[6].text.isdigit() else -1
 
-            finished = int(tds[8].text) if tds[8].text.isdigit() else -1
+            finished = int(tds[7].text) if tds[7].text.isdigit() else -1
 
             torrent_info['cat'] = cat
             torrent_info['is_hot'] = is_hot
@@ -247,7 +247,7 @@ class TorrentBot(ContextDecorator):
                 if torrent_info['seed_id'] in self.old_torrent:
                     continue
                 # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GB' not in torrent_info['file_size'][0]:
+                if 'GiB' not in torrent_info['file_size'][0]:
                     continue
                 if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
                     continue
@@ -255,7 +255,7 @@ class TorrentBot(ContextDecorator):
                         torrent_info['seeding']) < 20:
                     continue
                 file_size = torrent_info['file_size'][0]
-                file_size = file_size.replace('GB', '')
+                file_size = file_size.replace('GiB', '')
                 file_size = float(file_size.strip())
                 if file_size < 20.0:
                     continue
@@ -392,13 +392,13 @@ class TorrentBot(ContextDecorator):
                 break
 
             try:
-                user_info_block = torrents_soup.select_one('#info_block').select_one('.bottom')
+                user_info_block = torrents_soup.select_one('#info_block').select_one('.navbar-user-data')
                 self.get_user_info(user_info_block)
             except Exception as e:
                 print('[ERROR] ' + repr(e))
 
             try:
-                torrent_table = torrents_soup.select('.torrents > tr')[1:]
+                torrent_table = torrents_soup.find_all('tr', class_='free_bg')
                 torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self._filter_tags)
                 flag = True
             except Exception as e:
