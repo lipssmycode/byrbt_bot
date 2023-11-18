@@ -240,40 +240,24 @@ class TorrentBot(ContextDecorator):
     # 获取可用的种子的策略，可自行修改
     def get_ok_torrent(self, torrent_infos):
         ok_infos = list()
-        if len(torrent_infos) >= 20:
-            # 遇到free或者免费种子太过了，择优选取，标准是(下载数/上传数)>20，并且文件大小大于20GB
-            print('符合要求的种子过多，可能开启Free活动了，提高种子获取标准')
-            for torrent_info in torrent_infos:
-                if torrent_info['seed_id'] in self.old_torrent:
-                    continue
-                # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GiB' not in torrent_info['file_size'][0]:
-                    continue
-                if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
-                    continue
-                if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
-                        torrent_info['seeding']) < 20:
-                    continue
-                file_size = torrent_info['file_size'][0]
-                file_size = file_size.replace('GiB', '')
-                file_size = float(file_size.strip())
-                if file_size < 20.0:
-                    continue
-                ok_infos.append(torrent_info)
-        else:
-            # 正常种子选择标准是免费种子并且(下载数/上传数)>0.6
-            for torrent_info in torrent_infos:
-                if torrent_info['seed_id'] in self.old_torrent:
-                    continue
-                # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GiB' not in torrent_info['file_size'][0]:
-                    continue
-                if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
-                    continue
-                if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
-                        torrent_info['seeding']) < 0.6:
-                    continue
-                ok_infos.append(torrent_info)
+        # 正常种子选择标准是免费种子并且(下载数/上传数)>0.6
+        limit = 0
+        for torrent_info in torrent_infos:
+            if torrent_info['seed_id'] in self.old_torrent:
+                continue
+            # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
+            if 'GiB' not in torrent_info['file_size'][0]:
+                continue
+            file_size = torrent_info['file_size'][0]
+            file_size = file_size.replace('GiB', '')
+            file_size = float(file_size.strip())
+            if file_size > 80.0:
+                print('File too big!')
+                continue
+            ok_infos.append(torrent_info)
+            limit += 1
+            if limit == 10:
+                break
         return ok_infos
 
     def check_remove(self, add_num=0):

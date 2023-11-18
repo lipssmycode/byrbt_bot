@@ -20,19 +20,6 @@ class BitTorrent:
         self.password = config.get_transmission_config('transmission-password')
         self.download_path = config.get_transmission_config('transmission-download-path')
 
-    def download_from_file(self, filepath, paused=False):
-        try:
-            c = Client(host=self.host, port=self.port, username=self.username, password=self.password)
-            with open(filepath, 'rb') as f:
-                res = c.add_torrent(f, paused=paused, timeout=(60, 120))
-                if res is None:
-                    return None
-                time.sleep(1)  # wait 1s for torrent add to transmission
-                return c.get_torrent(res.id)
-        except Exception as e:
-            print('[ERROR] ' + repr(e))
-            return None
-
     def download_from_content(self, content, paused=False):
         try:
             c = Client(host=self.host, port=self.port, username=self.username, password=self.password)

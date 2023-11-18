@@ -12,3 +12,4 @@ lxml==4.6.4
 scipy==1.7.2
 six==1.16.0
 transmission-rpc==3.3.0
+qbittorrent-api
