@@ -160,7 +160,7 @@ class TorrentBot(ContextDecorator):
             cat = tds[1].find('a').text.strip()
             
             # 主要信息的td
-            main_td = tds[2].select('table > tr > td')[0]
+            main_td = tds[1].select('table > tr > td')[1]
             if main_td.find('div'):
                 main_td = tds[2].select('table > tr > td')[1]
             
@@ -392,7 +392,7 @@ class TorrentBot(ContextDecorator):
                 break
 
             try:
-                user_info_block = torrents_soup.select_one('#info_block').select_one('.bottom')
+                user_info_block = torrents_soup.select_one('#info_block').select_one('.bottom.navbar-user-data')
                 self.get_user_info(user_info_block)
             except Exception as e:
                 print('[ERROR] ' + repr(e))
