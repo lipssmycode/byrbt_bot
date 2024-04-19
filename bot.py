@@ -150,6 +150,7 @@ class TorrentBot(ContextDecorator):
 
     def get_torrent_info_filter_by_tag(self, table, filter_tags):
         assert isinstance(table, list)
+        start_idx = 1   # static offset
         torrent_infos = list()
         for item in table:
             torrent_info = dict()
@@ -157,12 +158,12 @@ class TorrentBot(ContextDecorator):
             # tds[0] 是 引用
 
             # tds[1] 是分类
-            cat = tds[0].find('a').text.strip()
+            cat = tds[start_idx].find('a').text.strip()
 
             # 主要信息的td
-            main_td = tds[1].select('table > tr > td')[0]
+            main_td = tds[start_idx+1].select('table > tr > td')[0]
             if main_td.find('div'):
-                main_td = tds[1].select('table > tr > td')[1]
+                main_td = tds[start_idx+1].select('table > tr > td')[1]
 
             # 链接
             href = main_td.select('a')[0].attrs['href']
@@ -207,13 +208,13 @@ class TorrentBot(ContextDecorator):
             else:
                 tag = ''
 
-            file_size = tds[4].text.split('\n')
+            file_size = tds[start_idx+4].text.split('\n')
 
-            seeding = int(tds[5].text) if tds[5].text.isdigit() else -1
+            seeding = int(tds[start_idx+5].text) if tds[start_idx+5].text.isdigit() else -1
 
-            downloading = int(tds[6].text) if tds[6].text.isdigit() else -1
+            downloading = int(tds[start_idx+6].text) if tds[start_idx+6].text.isdigit() else -1
 
-            finished = int(tds[7].text) if tds[7].text.isdigit() else -1
+            finished = int(tds[start_idx+7].text) if tds[start_idx+7].text.isdigit() else -1
 
             torrent_info['cat'] = cat
             torrent_info['is_hot'] = is_hot
@@ -251,9 +252,9 @@ class TorrentBot(ContextDecorator):
             file_size = torrent_info['file_size'][0]
             file_size = file_size.replace('GiB', '')
             file_size = float(file_size.strip())
-            if file_size > 80.0:
-                print('File too big!')
-                continue
+            # if file_size > 80.0:
+            #     print('File too big!')
+            #     continue
             ok_infos.append(torrent_info)
             limit += 1
             if limit == 10:
@@ -329,14 +330,13 @@ class TorrentBot(ContextDecorator):
             else:
                 if self.torrent_util.start_torrent(new_torrent.id):
                     print('add torrent: ' + str(res))
+                    self.old_torrent.append(torrent_id)
                 else:
                     print('add new torrent fail, start torrent fail, name : {}, seed size: {} GB, '
                           'download url: {}'.format(new_torrent.name, new_torrent_size / 1000000000, download_url))
-                self.old_torrent.append(torrent_id)
                 return True
         else:
             print('add new torrent fail, download url: ' + download_url)
-            self.old_torrent.append(torrent_id)
             return False
 
     def start(self):
