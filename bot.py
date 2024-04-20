@@ -150,7 +150,7 @@ class TorrentBot(ContextDecorator):
 
     def get_torrent_info_filter_by_tag(self, table, filter_tags):
         assert isinstance(table, list)
-        start_idx = 1   # static offset
+        start_idx = 1  # static offset
         torrent_infos = list()
         for item in table:
             torrent_info = dict()
@@ -161,9 +161,9 @@ class TorrentBot(ContextDecorator):
             cat = tds[start_idx].find('a').text.strip()
 
             # 主要信息的td
-            main_td = tds[start_idx+1].select('table > tr > td')[0]
+            main_td = tds[start_idx + 1].select('table > tr > td')[0]
             if main_td.find('div'):
-                main_td = tds[start_idx+1].select('table > tr > td')[1]
+                main_td = tds[start_idx + 1].select('table > tr > td')[1]
 
             # 链接
             href = main_td.select('a')[0].attrs['href']
@@ -174,7 +174,8 @@ class TorrentBot(ContextDecorator):
             # 标题
             title = main_td.find('a').attrs['title']
 
-            tags = set([font.attrs['class'][0] for font in main_td.select('span > span') if 'class' in font.attrs.keys()])
+            tags = set(
+                [font.attrs['class'][0] for font in main_td.select('span > span') if 'class' in font.attrs.keys()])
             if '' in tags:
                 tags.remove('')
 
@@ -204,17 +205,18 @@ class TorrentBot(ContextDecorator):
                 tag = self._get_tag(list(tags)[0])
             elif len(main_td.select('img[src="/pic/trans.gif"][class^="pro_"]')) > 0:
                 # 添加图标方式
-                tag = self._get_tag(main_td.select('img[src="/pic/trans.gif"][class^="pro_"]')[-1].attrs['class'][0].split('_')[-1])
+                tag = self._get_tag(
+                    main_td.select('img[src="/pic/trans.gif"][class^="pro_"]')[-1].attrs['class'][0].split('_')[-1])
             else:
                 tag = ''
 
-            file_size = tds[start_idx+4].text.split('\n')
+            file_size = tds[start_idx + 4].text.split('\n')
 
-            seeding = int(tds[start_idx+5].text) if tds[start_idx+5].text.isdigit() else -1
+            seeding = int(tds[start_idx + 5].text) if tds[start_idx + 5].text.isdigit() else -1
 
-            downloading = int(tds[start_idx+6].text) if tds[start_idx+6].text.isdigit() else -1
+            downloading = int(tds[start_idx + 6].text) if tds[start_idx + 6].text.isdigit() else -1
 
-            finished = int(tds[start_idx+7].text) if tds[start_idx+7].text.isdigit() else -1
+            finished = int(tds[start_idx + 7].text) if tds[start_idx + 7].text.isdigit() else -1
 
             torrent_info['cat'] = cat
             torrent_info['is_hot'] = is_hot
@@ -241,24 +243,40 @@ class TorrentBot(ContextDecorator):
     # 获取可用的种子的策略，可自行修改
     def get_ok_torrent(self, torrent_infos):
         ok_infos = list()
-        # 正常种子选择标准是免费种子并且(下载数/上传数)>0.6
-        limit = 0
-        for torrent_info in torrent_infos:
-            if torrent_info['seed_id'] in self.old_torrent:
-                continue
-            # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-            if 'GiB' not in torrent_info['file_size'][0]:
-                continue
-            file_size = torrent_info['file_size'][0]
-            file_size = file_size.replace('GiB', '')
-            file_size = float(file_size.strip())
-            # if file_size > 80.0:
-            #     print('File too big!')
-            #     continue
-            ok_infos.append(torrent_info)
-            limit += 1
-            if limit == 10:
-                break
+        if len(torrent_infos) >= 20:
+            # 遇到free或者免费种子太过了，择优选取，标准是(下载数/上传数)>20，并且文件大小大于20GB
+            print('符合要求的种子过多，可能开启Free活动了，提高种子获取标准')
+            for torrent_info in torrent_infos:
+                if torrent_info['seed_id'] in self.old_torrent:
+                    continue
+                # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
+                if 'GiB' not in torrent_info['file_size'][0]:
+                    continue
+                if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
+                    continue
+                if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
+                        torrent_info['seeding']) < 20:
+                    continue
+                file_size = torrent_info['file_size'][0]
+                file_size = file_size.replace('GiB', '')
+                file_size = float(file_size.strip())
+                if file_size < 20.0:
+                    continue
+                ok_infos.append(torrent_info)
+        else:
+            # 正常种子选择标准是免费种子并且(下载数/上传数)>0.6
+            for torrent_info in torrent_infos:
+                if torrent_info['seed_id'] in self.old_torrent:
+                    continue
+                # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
+                if 'GiB' not in torrent_info['file_size'][0]:
+                    continue
+                if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
+                    continue
+                if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
+                        torrent_info['seeding']) < 0.6:
+                    continue
+                ok_infos.append(torrent_info)
         return ok_infos
 
     def check_remove(self, add_num=0):
