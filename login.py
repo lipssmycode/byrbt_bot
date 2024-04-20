@@ -8,9 +8,6 @@
 """
 
 import requests
-from bs4 import BeautifulSoup
-from PIL import Image
-from io import BytesIO
 import pickle
 import time
 import os
@@ -32,7 +29,6 @@ class LoginTool:
         return self.base_url + url
 
     def load_cookie(self):
-        byrbt_cookies = None
         if os.path.exists(self.cookie_save_path):
             print('find ByrbtCookies.pickle, loading cookies')
             read_path = open(self.cookie_save_path, 'rb')
@@ -46,16 +42,13 @@ class LoginTool:
     def login(self):
         session = requests.session()
         for i in range(5):
-            login_content = session.get(self.login_url)
-            login_soup = BeautifulSoup(login_content.text, 'lxml')
-
             login_res = session.post(self.get_url('takelogin.php'),
                                      headers=self.headers,
                                      data=dict(
-                                         logintype=str("username"),
+                                         logintype="username",
                                          userinput=str(self.config.get_bot_config("username")),
                                          password=str(self.config.get_bot_config("passwd")),
-                                         autologin=str("yes"),))
+                                         autologin="yes"))
             if '最近消息' in login_res.text:
                 cookies = {}
                 for k, v in session.cookies.items():

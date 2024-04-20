@@ -9,7 +9,7 @@
 本机器人可以利用校园里的主机、树莓派、服务器等机器进行全自动做种（本人亲测已上传133TB）（如果家里支持ipv6并且使用代理访问byrbt，在家也是可以使用本项目的，需要修改请求byrbt网站的相关代码，添加代理）。本机器人采用transmission作为下载器，可以从Web端查看种子下载情况。
 
 byrbt_bot包含以下功能：
-- [x] 支持自动识别验证码登录（感谢[**decaptcha**](https://github.com/bumzy/decaptcha)项目）
+- [x] 支持新版本BYRBT登录（感谢[**sydxsty**](https://github.com/sydxsty)提供新的方法）
 - [x] 支持自动下载种子(感谢[**byrbt_bot**](https://github.com/Jason2031/byrbt_bot)项目)
 - [x] 支持自动寻找合适的免费种子进行下载并做种（默认条件：种子文件大于1GB小于1TB大小，下载人数比做种人数大于0.6）
 - [x] 支持自动识别Free活动，提高下载种子的条件，择优选取，避免频繁更换下载种子（默认条件：种子文件大于20GB小于1TB大小，下载人数比做种人数大于20.0）
@@ -187,7 +187,6 @@ docker-compose down
 4. 安装Python依赖
 
 ```bash
-# 如果scikit-learn安装不上的话，把Cpython添加进requirements.txt
 pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 ```
 
@@ -203,5 +202,4 @@ python3 bot.py
 
 ## 感谢
 
-**[byrbt_bot(https://github.com/Jason2031/byrbt_bot)](https://github.com/Jason2031/byrbt_bot)**  
-**[decaptcha(https://github.com/bumzy/decaptcha)](https://github.com/bumzy/decaptcha)**  
+**[byrbt_bot(https://github.com/Jason2031/byrbt_bot)](https://github.com/Jason2031/byrbt_bot)**
