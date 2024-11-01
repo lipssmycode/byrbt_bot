@@ -150,7 +150,7 @@ class TorrentBot(ContextDecorator):
 
     def get_torrent_info_filter_by_tag(self, table, filter_tags):
         assert isinstance(table, list)
-        start_idx = 1  # static offset
+        start_idx = 0  # static offset
         torrent_infos = list()
         for item in table:
             torrent_info = dict()
