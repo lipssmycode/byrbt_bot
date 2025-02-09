@@ -162,7 +162,9 @@ docker-compose down
 
 1. 确保安装transmission 3.00或者2.00以上版本，确保安装Python3.7版本（推荐anaconda/miniconda开一个新环境安装，高于3.7版本可能会导致sklearn无法安装）
 
-2. 配置transmission并运行transmission
+2. 确保安装谷歌浏览器内核，Windows和Mac直接安装Chrome，Linux安装chromium（apt-get update && apt-get install -y --no-install-recommends chromium）
+
+3. 配置transmission并运行transmission
 
    注意：尽量不要使用原有的transmission，因为本机器人会删除种子，如果原有的transmission有重要的种子数据，会导致数据丢失！
 
@@ -182,15 +184,15 @@ docker-compose down
 }
 ```
 
-3. 配置config/config.ini，需要修改byrbt账户名称和密码，同时需要修改transmission配置
+4. 配置config/config.ini，需要修改byrbt账户名称和密码，同时需要修改transmission配置
 
-4. 安装Python依赖
+5. 安装Python依赖
 
 ```bash
 pip install -i https://mirrors.aliyun.com/pypi/simple -r requirements.txt
 ```
 
-5. 启动byrbt-bot
+6. 启动byrbt-bot
 
 ```bash
 python3 bot.py
