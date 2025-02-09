@@ -1,4 +1,6 @@
 # old torrent list save file
 torrent.pkl
-# cookies
-ByrbtCookies.pickle
+# cache dir
+cache
+# temp torrent dir
+torrents

@@ -19,6 +19,7 @@ RUN apt-get update && \
     libreadline-dev \
     libffi-dev \
     wget \
+    chromium-browser \
     && rm -rf /var/lib/apt/lists/*
 RUN wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh -O ~/conda.sh
 RUN /bin/bash ~/conda.sh -b -p /conda && rm -rf ~/conda.sh

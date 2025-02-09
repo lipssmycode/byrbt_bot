@@ -8,6 +8,7 @@
 """
 
 import configparser
+import os
 
 
 def _print_config(config):
@@ -22,7 +23,9 @@ def _print_config(config):
 class ReadConfig:
 
     def __init__(self, filepath=None):
-        if filepath:
+        if os.environ.get("BYRBT_BOT_CONFIG") is not None:
+            config_path = str(os.environ.get("BYRBT_BOT_CONFIG"))
+        elif filepath:
             config_path = filepath
         else:
             config_path = "config/config.ini"
