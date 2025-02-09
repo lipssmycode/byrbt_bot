@@ -19,6 +19,7 @@ RUN apt-get update && \
     libreadline-dev \
     libffi-dev \
     wget \
+    chromium-browser \
     && rm -rf /var/lib/apt/lists/*
 RUN wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py37_4.9.2-Linux-x86_64.sh -O ~/conda.sh
 RUN /bin/bash ~/conda.sh -b -p /conda && rm -rf ~/conda.sh
@@ -70,6 +71,7 @@ custom_channels:\n\
 RUN ls -l /conda/bin |grep ^-| awk '{cmd1="mv /usr/bin/"$9" /usr/bin/"$9".bak 2>/dev/null";system(cmd1);cmd="ln -s /conda/bin/"$9" /usr/bin/"$9;system(cmd)}'
 RUN ln -s /conda/bin/python3.7 /usr/bin/python3
 RUN ln -s /conda/bin/python3.7 /usr/bin/python
+RUN ln -s /usr/bin/chromium-browser /usr/bin/chromium
 
 WORKDIR /
 

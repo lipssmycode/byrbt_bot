@@ -9,6 +9,7 @@
 
 from config import ReadConfig
 from login import LoginTool
+from utils.bit_torrent_utils import BitTorrent
 
 import signal
 import sys
@@ -16,12 +17,9 @@ import os
 import pickle
 import re
 import time
-import requests
 from contextlib import ContextDecorator
-from requests.cookies import RequestsCookieJar
 from bs4 import BeautifulSoup
-
-from utils.bit_torrent_utils import BitTorrent
+from urllib.parse import urljoin
 
 
 def _handle_interrupt(signum, frame):
@@ -29,21 +27,16 @@ def _handle_interrupt(signum, frame):
 
 
 class TorrentBot(ContextDecorator):
-    def __init__(self, config, login, torrent_util):
+    def __init__(self, config: ReadConfig, login_tool: LoginTool, torrent_util):
         super(TorrentBot, self).__init__()
         self.config = config
-        self.login = login
+        self.login_tool = login_tool
         self.torrent_util = torrent_util
+        self.page = None
         self.base_url = str(config.get_bot_config("byrbt-url"))
         self.torrent_url = self._get_url('torrents.php')
-        self.cookie_jar = RequestsCookieJar()
-        self.byrbt_cookies = login.load_cookie()
-        if self.byrbt_cookies is not None:
-            for k, v in self.byrbt_cookies.items():
-                self.cookie_jar[k] = v
-
         self.old_torrent = list()
-        self.torrent_download_record_save_path = './data/torrent.pkl'
+        self.torrent_download_record_save_path = os.path.join('data', 'torrent.pkl')
         self.max_torrent_count = int(config.get_bot_config("max-torrent"))
         # all size in Byte
         self.max_torrent_total_size = int(config.get_bot_config("max-torrent-total-size"))
@@ -66,9 +59,6 @@ class TorrentBot(ContextDecorator):
             self.torrent_max_size = 1024 * 1024 * 1024 * 1024
             self.torrent_min_size = 1 * 1024 * 1024 * 1024
 
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
-        self._filter_tags = ['免费', '免费&2x上传']
         self._tag_map = {
             # highlight & tag
             'free': '免费',
@@ -112,8 +102,8 @@ class TorrentBot(ContextDecorator):
         print('保存数据')
         pickle.dump(self.old_torrent, open(self.torrent_download_record_save_path, 'wb'), protocol=2)
 
-    def _get_url(self, url):
-        return self.base_url + url
+    def _get_url(self, url_path):
+        return urljoin(self.base_url, url_path)
 
     def _get_tag(self, tag):
         try:
@@ -126,7 +116,8 @@ class TorrentBot(ContextDecorator):
         except KeyError:
             return ''
 
-    def get_user_info(self, user_info_block):
+    @staticmethod
+    def get_user_info(user_info_block):
         print("user info:")
         try:
             user_name = user_info_block.select_one('.nowrap').text
@@ -148,7 +139,7 @@ class TorrentBot(ContextDecorator):
             print("user info not found!")
             print('[ERROR] ' + repr(e))
 
-    def get_torrent_info_filter_by_tag(self, table, filter_tags):
+    def get_torrent_info_filter_by_tag(self, table):
         assert isinstance(table, list)
         start_idx = 0  # static offset
         torrent_infos = list()
@@ -161,18 +152,16 @@ class TorrentBot(ContextDecorator):
             cat = tds[start_idx].find('a').text.strip()
 
             # 主要信息的td
-            main_td = tds[start_idx + 1].select('table > tr > td')[0]
-            if main_td.find('div'):
-                main_td = tds[start_idx + 1].select('table > tr > td')[1]
+            main_td = tds[start_idx + 1]
 
             # 链接
-            href = main_td.select('a')[0].attrs['href']
+            href = main_td.find('a').attrs['href'].strip()
 
             # 种子id
-            seed_id = re.findall(r'id=(\d+)', href)[0]
+            seed_id = re.findall(r'id=(\d+)', href)[0].strip()
 
             # 标题
-            title = main_td.find('a').attrs['title']
+            title = main_td.find('a').attrs['title'].strip()
 
             tags = set(
                 [font.attrs['class'][0] for font in main_td.select('span > span') if 'class' in font.attrs.keys()])
@@ -210,7 +199,7 @@ class TorrentBot(ContextDecorator):
             else:
                 tag = ''
 
-            file_size = tds[start_idx + 4].text.split('\n')
+            file_size = tds[start_idx + 4].text.strip()
 
             seeding = int(tds[start_idx + 5].text) if tds[start_idx + 5].text.isdigit() else -1
 
@@ -233,12 +222,7 @@ class TorrentBot(ContextDecorator):
             torrent_info['is_recommended'] = is_recommended
             torrent_infos.append(torrent_info)
 
-        torrent_infos_filter_by_tag = list()
-        for torrent_info in torrent_infos:
-            if torrent_info['tag'] in filter_tags:
-                torrent_infos_filter_by_tag.append(torrent_info)
-
-        return torrent_infos_filter_by_tag
+        return torrent_infos
 
     # 获取可用的种子的策略，可自行修改
     def get_ok_torrent(self, torrent_infos):
@@ -250,14 +234,14 @@ class TorrentBot(ContextDecorator):
                 if torrent_info['seed_id'] in self.old_torrent:
                     continue
                 # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GiB' not in torrent_info['file_size'][0]:
+                if 'GiB' not in torrent_info['file_size']:
                     continue
                 if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
                     continue
                 if torrent_info['seeding'] != 0 and float(torrent_info['downloading']) / float(
                         torrent_info['seeding']) < 20:
                     continue
-                file_size = torrent_info['file_size'][0]
+                file_size = torrent_info['file_size']
                 file_size = file_size.replace('GiB', '')
                 file_size = float(file_size.strip())
                 if file_size < 20.0:
@@ -269,7 +253,7 @@ class TorrentBot(ContextDecorator):
                 if torrent_info['seed_id'] in self.old_torrent:
                     continue
                 # 下载1GB-1TB之间的种子（下载以GB大小结尾的种子，脚本需要不可修改）
-                if 'GiB' not in torrent_info['file_size'][0]:
+                if 'GiB' not in torrent_info['file_size']:
                     continue
                 if torrent_info['seeding'] <= 0 or torrent_info['downloading'] < 0:
                     continue
@@ -308,26 +292,40 @@ class TorrentBot(ContextDecorator):
         download_url = 'download.php?id={}'.format(torrent_id)
         download_url = self._get_url(download_url)
         flag = False
-        r = None
+        torrent_content = None
         for i in range(5):
             try:
-                r = requests.get(download_url, cookies=self.cookie_jar, headers=self.headers)
+                save_path = os.path.join(self.page.download_path, 'data', 'torrents')
+                res = self.page.download.download(
+                    file_url=download_url,
+                    save_path=save_path,
+                    file_exists='overwrite',
+                    rename=torrent_id,
+                    suffix='torrent')
+                if isinstance(res, tuple) is False:
+                    time.sleep(1)
+                    continue
+                if res[0] != 'success':
+                    time.sleep(1)
+                    continue
+                torrent_path = res[1]
+                with open(torrent_path, 'rb') as f:
+                    torrent_content = f.read()
+                os.unlink(torrent_path)
                 flag = True
                 break
             except Exception as e:
                 print('[ERROR] ' + repr(e))
-                print('try login...')
-                self.byrbt_cookies = self.login.load_cookie()
-                if self.byrbt_cookies is not None:
-                    self.cookie_jar = RequestsCookieJar()
-                    for k, v in self.byrbt_cookies.items():
-                        self.cookie_jar[k] = v
+                print('retry login...')
+                self.login_tool.clear_browser()
+                self.page = self.login_tool.login()
                 time.sleep(1)
 
-        if flag is False or r is None:
-            print('login failed!')
+        if flag is False or torrent_content is None:
+            print('download torrent failed!')
+            return False
 
-        new_torrent = self.torrent_util.download_from_content(r.content, paused=True)
+        new_torrent = self.torrent_util.download_from_content(torrent_content, paused=True)
         if new_torrent is not None:
             new_torrent_size = new_torrent.total_size
             if new_torrent_size < self.torrent_min_size or new_torrent_size > self.torrent_max_size:
@@ -372,22 +370,30 @@ class TorrentBot(ContextDecorator):
                     time.sleep(scan_interval_in_sec)
                     continue
 
+            if self.page is None:
+                self.page = self.login_tool.login()
+                if self.page is None:
+                    self.login_tool.clear_browser()
+                    break
+
             print('scan torrent list...')
             flag = False
             torrents_soup = None
-            torrent_infos = None
             try:
-                torrents_soup = BeautifulSoup(
-                    requests.get(self.torrent_url, cookies=self.cookie_jar, headers=self.headers).content,
-                    features="lxml")
-                flag = True
+                if self.page.get(self.torrent_url, retry=5) is False:
+                    print('failed to access the website!', self.torrent_url)
+                    self.login_tool.clear_browser()
+                else:
+                    self.page.scroll.to_bottom()
+                    if self.page.wait.doc_loaded(timeout=30) is False:
+                        print('get torrents timeout!')
+                        self.login_tool.clear_browser()
+                    else:
+                        torrents_soup = BeautifulSoup(self.page.html, 'html.parser')
+                        flag = True
             except Exception as e:
                 print('[ERROR] ' + repr(e))
-                self.byrbt_cookies = self.login.load_cookie()
-                if self.byrbt_cookies is not None:
-                    self.cookie_jar = RequestsCookieJar()
-                    for k, v in self.byrbt_cookies.items():
-                        self.cookie_jar[k] = v
+                self.login_tool.clear_browser()
 
             if flag is False:
                 print('login failed!')
@@ -399,9 +405,14 @@ class TorrentBot(ContextDecorator):
             except Exception as e:
                 print('[ERROR] ' + repr(e))
 
+            torrent_infos = list()
             try:
-                torrent_table = torrents_soup.find_all('tr', class_='free_bg')
-                torrent_infos = self.get_torrent_info_filter_by_tag(torrent_table, self._filter_tags)
+                torrent_free_bg_table = torrents_soup.find_all('tr', class_='free_bg')
+                torrent_infos_free_bg = self.get_torrent_info_filter_by_tag(torrent_free_bg_table)
+                torrent_infos.extend(torrent_infos_free_bg)
+                torrent_twoupfree_bg_table = torrents_soup.find_all('tr', class_='twoupfree_bg')
+                torrent_infos_twoupfree_bg = self.get_torrent_info_filter_by_tag(torrent_twoupfree_bg_table)
+                torrent_infos.extend(torrent_infos_twoupfree_bg)
                 flag = True
             except Exception as e:
                 print('[ERROR] ' + repr(e))
@@ -499,7 +510,7 @@ class TorrentBot(ContextDecorator):
 
 if __name__ == '__main__':
     config = ReadConfig(filepath='config/config.ini')
-    login = LoginTool(config)
+    login_tool = LoginTool(config)
     bit_torrent = BitTorrent(config)
-    with TorrentBot(config, login, bit_torrent) as byrbt_bot:
+    with TorrentBot(config, login_tool, bit_torrent) as byrbt_bot:
         byrbt_bot.start()
