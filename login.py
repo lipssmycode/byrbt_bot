@@ -80,8 +80,8 @@ class LoginTool:
             print('failed to access the website!', self.base_url)
             return None
         if self.page.url.endswith('login'):
-            self.page.ele('@autocomplete=username').input(str(config.get_bot_config("username")), clear=True)
-            self.page.ele('@autocomplete=current-password').input(str(config.get_bot_config("passwd")), clear=True)
+            self.page.ele('@autocomplete=username').input(str(self.config.get_bot_config("username")), clear=True)
+            self.page.ele('@autocomplete=current-password').input(str(self.config.get_bot_config("passwd")), clear=True)
             self.page.ele('@text()=保持登录').click()
             self.page.ele('@text()= 登录 ').click()
             if self.page.wait.load_start(timeout=30) is False:
