@@ -164,6 +164,8 @@ docker-compose down
 
 2. 确保安装谷歌浏览器内核，Windows和Mac直接安装Chrome，Linux安装chromium（apt-get update && apt-get install -y --no-install-recommends chromium-browser）
 
+   同时最好手动设置一下ChromiumOptions里面的浏览器地址
+
 3. 配置transmission并运行transmission
 
    注意：尽量不要使用原有的transmission，因为本机器人会删除种子，如果原有的transmission有重要的种子数据，会导致数据丢失！
