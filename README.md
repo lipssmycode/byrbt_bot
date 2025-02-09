@@ -49,6 +49,8 @@ max-torrent = 20                         # 种子队列上限
 max-torrent-total-size = 1024   # 种子大小总量上限（单位G）
 torrent-max-size = 512          # 单种子大小上限（单位G）
 torrent-min-size = 1            # 单种子大小下限（单位G）
+chromium-local-port = 23546     # chromium浏览器端口
+chromium-proxy = <optional>     # http或者socks5代理链接（可选）
 
 [Transmission]
 transmission-host = 127.0.0.1            # transmission所在服务器地址
@@ -164,7 +166,7 @@ docker-compose down
 
 2. 确保安装谷歌浏览器内核，Windows和Mac直接安装Chrome，Linux安装chromium（apt-get update && apt-get install -y --no-install-recommends chromium-browser）
 
-   同时最好手动设置一下ChromiumOptions里面的浏览器地址
+   同时最好手动设置一下代码里面ChromiumOptions的浏览器可执行文件地址
 
 3. 配置transmission并运行transmission
 
