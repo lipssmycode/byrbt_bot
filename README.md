@@ -162,7 +162,7 @@ docker-compose down
 
 1. 确保安装transmission 3.00或者2.00以上版本，确保安装Python3.7版本（推荐anaconda/miniconda开一个新环境安装，高于3.7版本可能会导致sklearn无法安装）
 
-2. 确保安装谷歌浏览器内核，Windows和Mac直接安装Chrome，Linux安装chromium（apt-get update && apt-get install -y --no-install-recommends chromium）
+2. 确保安装谷歌浏览器内核，Windows和Mac直接安装Chrome，Linux安装chromium（apt-get update && apt-get install -y --no-install-recommends chromium-browser）
 
 3. 配置transmission并运行transmission
 
