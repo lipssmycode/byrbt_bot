@@ -52,7 +52,7 @@ max-torrent-total-size = 1024   # 种子大小总量上限（单位G）
 torrent-max-size = 512          # 单种子大小上限（单位G）
 torrent-min-size = 1            # 单种子大小下限（单位G）
 chromium-local-port = 23546     # chromium浏览器端口
-chromium-proxy = <optional>     # http或者socks5代理链接（可选）
+chromium-proxy = <optional>     # http或者socks5代理链接（可选，如不用请置为空）
 
 [Transmission]
 transmission-host = 127.0.0.1            # transmission所在服务器地址
