@@ -2,7 +2,7 @@
 
 [![byrbt](https://img.shields.io/static/v1?label=ByrBt&message=2.0&color=blue)](https://github.com/lipssmycode/byrbt_bot) [![Python](https://img.shields.io/badge/python-3.7-plastic?logo=python&logoColor=#3776AB&link=https://www.python.org/)](https://www.python.org/) [![Transmission](https://img.shields.io/static/v1?label=Transmission&message=3.00&color=red)](https://transmissionbt.com/)
 
-**需要支持qBittorrent？请看新项目（https://github.com/yliu7949/byr）**
+**需要支持qBittorrent？请看新项目（ https://github.com/yliu7949/byr ）**
 
 **北邮人BT全自动~~刷流~~下载做种机器人**
 
@@ -213,5 +213,6 @@ python3 bot.py
 ## 感谢
 
 **[byrbt_bot(https://github.com/Jason2031/byrbt_bot)](https://github.com/Jason2031/byrbt_bot)**
+
 
 
